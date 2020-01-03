@@ -1,6 +1,7 @@
-package com.onyshchenko.psanalyzer.services;
+package com.onyshchenko.psanalyzer.controllers;
 
-import com.onyshchenko.psanalyzer.interfaces.GameServiceIntf;
+import com.onyshchenko.psanalyzer.dao.GameRepository;
+import com.onyshchenko.psanalyzer.interfaces.controllers.GameControllerIntf;
 import com.onyshchenko.psanalyzer.model.Game;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,7 +14,7 @@ import java.util.NoSuchElementException;
 
 
 @RestController
-public class GameService implements GameServiceIntf {
+public class GameController implements GameControllerIntf {
 
     @Autowired
     private GameRepository gameRepository;
@@ -38,7 +39,7 @@ public class GameService implements GameServiceIntf {
     @Override
     public ResponseEntity<Object> updateGame(String id, Game gameDetails) {
         Game game = gameRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("Game not found od ::" + id));
+                () -> new NoSuchElementException("Game not found id ::" + id));
         game.setName(gameDetails.getName());
         gameRepository.save(game);
         return new ResponseEntity<>("Game updated", HttpStatus.OK);

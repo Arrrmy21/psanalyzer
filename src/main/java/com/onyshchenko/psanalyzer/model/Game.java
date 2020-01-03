@@ -2,7 +2,11 @@ package com.onyshchenko.psanalyzer.model;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
 @Table(name = "games")
@@ -17,11 +21,6 @@ public class Game {
     private String name;
 
     public Game() {
-    }
-
-    public Game(String name) {
-        this.id = id;
-        this.name = name;
     }
 
     public String getId() {

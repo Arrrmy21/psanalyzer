@@ -1,4 +1,4 @@
-package com.onyshchenko.psanalyzer.interfaces;
+package com.onyshchenko.psanalyzer.interfaces.controllers;
 
 import com.onyshchenko.psanalyzer.model.Game;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +10,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @RequestMapping("/games")
-public interface GameServiceIntf {
+public interface GameControllerIntf {
 
     @GetMapping("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -29,7 +29,4 @@ public interface GameServiceIntf {
 
     @DeleteMapping("/{id}")
     ResponseEntity<Object> deleteGame(@PathVariable String id);
-
-
-
 }

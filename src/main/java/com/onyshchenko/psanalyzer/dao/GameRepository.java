@@ -1,4 +1,4 @@
-package com.onyshchenko.psanalyzer.services;
+package com.onyshchenko.psanalyzer.dao;
 
 import com.onyshchenko.psanalyzer.model.Game;
 import org.springframework.data.jpa.repository.JpaRepository;
