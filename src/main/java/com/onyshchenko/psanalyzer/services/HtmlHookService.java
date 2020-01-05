@@ -14,13 +14,17 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Component
 public class HtmlHookService {
 
+    @Autowired
+    private GameService gameService;
     @Autowired
     private GameControllerIntf gameController;
 
@@ -29,18 +33,15 @@ public class HtmlHookService {
 
     private static final String BASE_URL = "https://store.playstation.com/ru-ua/";
 
-    //    public static void main(String[] args) throws IOException {
     public void getPrices(String url) throws IOException {
-//        String url = "product/EP0822-CUSA08403_00-DEADAGEPS4SIEE00";
-//        String url = "home/games";
         String address = BASE_URL + url;
         Document doc = Jsoup.connect(address).get();
         logger.info(doc.title());
 
         List<Game> games = getListOfGames(doc);
 
-        games.stream().forEach(g -> gameController.createGame(g));
-        System.out.println(games);
+        gameService.checkList(games);
+        logger.info(games.toString());
 
     }
 
@@ -79,7 +80,7 @@ public class HtmlHookService {
         return games;
     }
 
-    private static String subString(String s) {
+    private String subString(String s) {
         if (s.contains("sku")) {
             return s.substring(7, s.length() - 1);
         } else if (s.contains("price")) {
@@ -89,15 +90,12 @@ public class HtmlHookService {
         }
     }
 
-
     @Scheduled(fixedDelay = 10000)
     public void scheduledTssk() throws IOException, InterruptedException {
 
-        logger.info("get all prices", dateTimeFormatter.format(LocalDateTime.now()));
-        getPrices("product/EP0822-CUSA08403_00-DEADAGEPS4SIEE00");
-        logger.info("sleep", dateTimeFormatter.format(LocalDateTime.now()));
-        Thread.sleep(3000);
         logger.info("get exact price", dateTimeFormatter.format(LocalDateTime.now()));
+        getPrices("product/EP0822-CUSA08403_00-DEADAGEPS4SIEE00");
+        logger.info("get all prices", dateTimeFormatter.format(LocalDateTime.now()));
         getPrices("home/games");
     }
 }

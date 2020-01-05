@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-
 @RestController
 public class GameController implements GameControllerIntf {
 
@@ -21,8 +20,13 @@ public class GameController implements GameControllerIntf {
 
     public ResponseEntity<Game> getGame(@PathVariable(value = "id") String id) {
         Game game = gameRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("Game not found od ::" + id));
+                () -> new IllegalArgumentException("Game not found id ::" + id));
         return ResponseEntity.ok().body(game);
+    }
+
+    @Override
+    public Game findByName(@PathVariable(value = "name") String name) {
+        return gameRepository.findByName(name);
     }
 
     @Override
@@ -39,7 +43,7 @@ public class GameController implements GameControllerIntf {
     @Override
     public ResponseEntity<Object> updateGame(String id, Game gameDetails) {
         Game game = gameRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("Game not found id ::" + id));
+                () -> new IllegalArgumentException("Game not found id ::" + id));
         game.setName(gameDetails.getName());
         gameRepository.save(game);
         return new ResponseEntity<>("Game updated", HttpStatus.OK);
@@ -48,7 +52,7 @@ public class GameController implements GameControllerIntf {
     @Override
     public ResponseEntity<Object> deleteGame(@PathVariable String id) {
         Game game = gameRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("Game not found od ::" + id));
+                () -> new NoSuchElementException("Game not found id ::" + id));
         gameRepository.delete(game);
         return new ResponseEntity<>("Game deleted", HttpStatus.OK);
     }

@@ -16,6 +16,10 @@ public interface GameControllerIntf {
     @Produces(MediaType.APPLICATION_JSON)
     ResponseEntity<Game> getGame(String id);
 
+    @GetMapping("/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    Game findByName(String name);
+
     @GetMapping
     @Produces(MediaType.APPLICATION_JSON)
     List<Game> getGames();
