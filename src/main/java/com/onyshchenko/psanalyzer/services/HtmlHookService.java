@@ -2,6 +2,7 @@ package com.onyshchenko.psanalyzer.services;
 
 import com.onyshchenko.psanalyzer.interfaces.controllers.GameControllerIntf;
 import com.onyshchenko.psanalyzer.model.Game;
+import com.onyshchenko.psanalyzer.model.Price;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -33,7 +34,8 @@ public class HtmlHookService {
 
     private static final String BASE_URL = "https://store.playstation.com/ru-ua/";
 
-    public void getPrices(String url) throws IOException {
+    public void getDataFromURL(String url) throws IOException {
+
         String address = BASE_URL + url;
         Document doc = Jsoup.connect(address).get();
         logger.info(doc.title());
@@ -46,7 +48,6 @@ public class HtmlHookService {
     }
 
     private List<Game> getListOfGames(Document doc) {
-
 
         Predicate<String> name = s -> s.contains("name");
         Predicate<String> price = s -> s.contains("price\"");
@@ -70,7 +71,7 @@ public class HtmlHookService {
                     String gamePrice = sortedList.get(i + 1);
                     if (sortedList.get(i + 2).contains("sku")) {
                         String gameSku = sortedList.get(i + 2);
-                        games.add(new Game(subString(gameName), subString(gamePrice), subString(gameSku)));
+                        games.add(new Game(subString(gameName), new Price(subString(gamePrice)), subString(gameSku)));
                     }
                 }
             }
@@ -90,12 +91,24 @@ public class HtmlHookService {
         }
     }
 
-    @Scheduled(fixedDelay = 10000)
-    public void scheduledTssk() throws IOException, InterruptedException {
+//    @Scheduled(fixedDelay = 600000)
+//    public void scheduledTask() throws IOException, InterruptedException {
+//
+//        String allGames = "grid/STORE-MSF75508-FULLGAMES/";
+//
+//        for(int page = 1; page<205; page++) {
+//            logger.info("Get all prices form page: " + page, dateTimeFormatter.format(LocalDateTime.now()));
+//            getDataFromURL(allGames + page);
+//        }
+//    }
 
-        logger.info("get exact price", dateTimeFormatter.format(LocalDateTime.now()));
-        getPrices("product/EP0822-CUSA08403_00-DEADAGEPS4SIEE00");
-        logger.info("get all prices", dateTimeFormatter.format(LocalDateTime.now()));
-        getPrices("home/games");
+    @Scheduled(fixedDelay = 10000)
+    public void debugScheduledTask() throws IOException, InterruptedException {
+
+        logger.info("Get exact price", dateTimeFormatter.format(LocalDateTime.now()));
+        getDataFromURL("product/EP0822-CUSA08403_00-DEADAGEPS4SIEE00");
+        logger.info("Get all prices", dateTimeFormatter.format(LocalDateTime.now()));
+        getDataFromURL("home/games");
     }
+
 }

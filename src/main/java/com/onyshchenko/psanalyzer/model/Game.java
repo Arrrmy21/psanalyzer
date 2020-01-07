@@ -7,6 +7,9 @@ import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.OneToOne;
+import javax.persistence.JoinColumn;
+import javax.persistence.CascadeType;
 import javax.validation.constraints.NotNull;
 
 @Entity
@@ -17,6 +20,7 @@ public class Game {
     @NotNull
     @GeneratedValue(generator = "system-uuid")
     @GenericGenerator(name = "system-uuid", strategy = "uuid")
+    @Column(name = "id")
     private String id;
 
     @Column(name = "game_name")
@@ -25,13 +29,14 @@ public class Game {
     @Column(name = "game_url")
     private String url;
 
-    @Column(name = "game_price")
-    private String price;
+    @OneToOne(cascade = {CascadeType.ALL})
+    @JoinColumn(name = "prices_id")
+    private Price price;
 
     public Game() {
     }
 
-    public Game(String name, String price, String url) {
+    public Game(String name, Price price, String url) {
         this.name = name;
         this.url = url;
         this.price = price;
@@ -45,11 +50,11 @@ public class Game {
         this.url = url;
     }
 
-    public String getPrice() {
+    public Price getPrice() {
         return price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(Price price) {
         this.price = price;
     }
 

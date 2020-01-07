@@ -16,6 +16,8 @@ public class GameService {
 
     @Autowired
     private GameControllerIntf gameController;
+    @Autowired
+    private PriceService priceService;
 
     public Game checkGameAlreadyExists(String name) {
         return gameController.findByName(name);
@@ -25,7 +27,10 @@ public class GameService {
 
         logger.info("Checking list of games");
 
-        if (games.isEmpty()) return;
+        if (games.isEmpty()) {
+            logger.info("List of games is empty.");
+            return;
+        }
 
         for (Game game : games) {
             String name = game.getName();
@@ -34,13 +39,13 @@ public class GameService {
             if (gameFromDb == null) {
                 logger.info("Creating game record.");
                 gameController.createGame(game);
-            } else {
-                if (!game.getPrice().equals(gameFromDb.getPrice())) {
-                    logger.info("Updating game price.");
-                    gameController.updateGame(gameFromDb.getId(), game);
-                }
-                logger.info("Actual game already exists in DB.");
+                return;
             }
+            if (game.getPrice().getCurrentPrice() != (gameFromDb.getPrice().getCurrentPrice())) {
+                logger.info("Checking game price.");
+                gameFromDb.setPrice(priceService.comparePrices(game.getPrice(), gameFromDb.getPrice()));
+                gameController.updateGame(gameFromDb.getId(), gameFromDb);
+            } else logger.info("Actual game already exists in DB.");
         }
     }
 }

@@ -44,8 +44,7 @@ public class GameController implements GameControllerIntf {
     public ResponseEntity<Object> updateGame(String id, Game gameDetails) {
         Game game = gameRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("Game not found id ::" + id));
-        game.setName(gameDetails.getName());
-        gameRepository.save(game);
+        gameRepository.save(gameDetails);
         return new ResponseEntity<>("Game updated", HttpStatus.OK);
     }
 
