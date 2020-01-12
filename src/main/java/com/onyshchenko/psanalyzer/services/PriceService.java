@@ -5,8 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-
 @Component
 public class PriceService {
 
@@ -22,12 +20,12 @@ public class PriceService {
         int oldPrice = gameFromDB.getCurrentPrice();
         int actualPrice = gameFromSite.getCurrentPrice();
         int lowestPrice = gameFromDB.getLowestPrice();
-
+        newPrice.setId(gameFromDB.getId());
 
         if (actualPrice < lowestPrice) {
             logger.info("Reached the lowest price.");
             newPrice.setLowestPrice(actualPrice);
-            newPrice.setLowestPriceDate(LocalDate.now());
+            newPrice.setLowestPriceDate(gameFromSite.getLowestPriceDate());
 
             int currentDiscount = evaluateDiscount(oldPrice, actualPrice);
             int currentPercentageDiscount = evaluatePercentageDiscount(oldPrice, actualPrice);
@@ -39,7 +37,13 @@ public class PriceService {
                 newPrice.setHighestDiscount(currentDiscount);
                 newPrice.setHighestPercentageDiscount(currentPercentageDiscount);
             }
-            newPrice.setId(gameFromDB.getId());
+        } else {
+            newPrice.setLowestPrice(gameFromDB.getLowestPrice());
+            newPrice.setLowestPriceDate(gameFromDB.getLowestPriceDate());
+            newPrice.setCurrentDiscount(0);
+            newPrice.setCurrentPercentageDiscount(0);
+            newPrice.setHighestDiscount(gameFromDB.getHighestDiscount());
+            newPrice.setHighestPercentageDiscount(gameFromDB.getHighestPercentageDiscount());
         }
         return newPrice;
     }

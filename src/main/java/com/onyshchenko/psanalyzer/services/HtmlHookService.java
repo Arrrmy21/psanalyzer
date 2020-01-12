@@ -102,7 +102,7 @@ public class HtmlHookService {
 //        }
 //    }
 
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 60000)
     public void debugScheduledTask() throws IOException, InterruptedException {
 
         logger.info("Get exact price", dateTimeFormatter.format(LocalDateTime.now()));

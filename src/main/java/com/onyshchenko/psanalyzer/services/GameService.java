@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class GameService {
@@ -19,13 +20,13 @@ public class GameService {
     @Autowired
     private PriceService priceService;
 
-    public Game checkGameAlreadyExists(String name) {
-        return gameController.findByName(name);
+    public Optional<Game> checkGameAlreadyExists(String id) {
+        return gameController.getGame(id);
     }
 
     public void checkList(List<Game> games) {
 
-        logger.info("Checking list of games");
+        logger.info("Checking list of games.");
 
         if (games.isEmpty()) {
             logger.info("List of games is empty.");
@@ -33,19 +34,18 @@ public class GameService {
         }
 
         for (Game game : games) {
-            String name = game.getName();
-            logger.info("Checking game record for name: " + name + ".");
-            Game gameFromDb = checkGameAlreadyExists(name);
-            if (gameFromDb == null) {
+            logger.info("Checking game record for name: " + game.getName() + ".");
+            Optional<Game> gameFromDb = checkGameAlreadyExists(game.getId());
+            if (!gameFromDb.isPresent()) {
                 logger.info("Creating game record.");
                 gameController.createGame(game);
-                return;
+            } else {
+                if (game.getPrice().getCurrentPrice() != gameFromDb.get().getPrice().getCurrentPrice()) {
+                    logger.info("Checking game price.");
+                    gameFromDb.get().setPrice(priceService.comparePrices(game.getPrice(), gameFromDb.get().getPrice()));
+                    gameController.updateGame(gameFromDb.get());
+                } else logger.info("Actual game already exists in DB.");
             }
-            if (game.getPrice().getCurrentPrice() != (gameFromDb.getPrice().getCurrentPrice())) {
-                logger.info("Checking game price.");
-                gameFromDb.setPrice(priceService.comparePrices(game.getPrice(), gameFromDb.getPrice()));
-                gameController.updateGame(gameFromDb.getId(), gameFromDb);
-            } else logger.info("Actual game already exists in DB.");
         }
     }
 }

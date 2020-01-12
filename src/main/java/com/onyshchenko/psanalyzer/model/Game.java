@@ -1,10 +1,7 @@
 package com.onyshchenko.psanalyzer.model;
 
-import org.hibernate.annotations.GenericGenerator;
-
 import javax.persistence.Entity;
 import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.OneToOne;
@@ -18,11 +15,10 @@ public class Game {
 
     @Id
     @NotNull
-    @GeneratedValue(generator = "system-uuid")
-    @GenericGenerator(name = "system-uuid", strategy = "uuid")
     @Column(name = "id")
     private String id;
 
+    @NotNull
     @Column(name = "game_name")
     private String name;
 
@@ -37,6 +33,7 @@ public class Game {
     }
 
     public Game(String name, Price price, String url) {
+        this.id = String.valueOf(name.hashCode());
         this.name = name;
         this.url = url;
         this.price = price;

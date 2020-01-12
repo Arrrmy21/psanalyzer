@@ -43,7 +43,7 @@ public class Price {
     }
 
     public Price(String stringPrice) {
-        this.currentPrice = Integer.parseInt(stringPrice);
+        this.currentPrice = (int) Double.parseDouble(stringPrice);
         this.highestPrice = currentPrice;
         this.highestPriceDate = LocalDate.now();
         this.lowestPriceDate = LocalDate.now();

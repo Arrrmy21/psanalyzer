@@ -8,17 +8,14 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
+import java.util.Optional;
 
 @RequestMapping("/games")
 public interface GameControllerIntf {
 
     @GetMapping("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    ResponseEntity<Game> getGame(String id);
-
-    @GetMapping("/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    Game findByName(String name);
+    Optional<Game> getGame(String id);
 
     @GetMapping
     @Produces(MediaType.APPLICATION_JSON)
@@ -28,8 +25,8 @@ public interface GameControllerIntf {
     @Consumes(MediaType.APPLICATION_JSON)
     ResponseEntity<Object> createGame(@RequestBody Game game);
 
-    @PutMapping("/{id}")
-    ResponseEntity updateGame(@PathVariable String id, @RequestBody Game game);
+    @PutMapping()
+    ResponseEntity updateGame(@RequestBody Game game);
 
     @DeleteMapping("/{id}")
     ResponseEntity<Object> deleteGame(@PathVariable String id);
