@@ -1,13 +1,13 @@
 package com.onyshchenko.psanalyzer.interfaces.controllers;
 
 import com.onyshchenko.psanalyzer.model.Game;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.List;
 import java.util.Optional;
 
 @RequestMapping("/games")
@@ -19,7 +19,8 @@ public interface GameControllerIntf {
 
     @GetMapping
     @Produces(MediaType.APPLICATION_JSON)
-    List<Game> getGames();
+    Page<Game> getGames(@RequestParam(required = false, defaultValue = "0") int page,
+                        @RequestParam(required = false, defaultValue = "10") int size);
 
     @PostMapping()
     @Consumes(MediaType.APPLICATION_JSON)

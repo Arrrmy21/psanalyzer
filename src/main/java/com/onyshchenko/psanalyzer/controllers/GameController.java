@@ -6,12 +6,13 @@ import com.onyshchenko.psanalyzer.model.Game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -29,9 +30,9 @@ public class GameController implements GameControllerIntf {
     }
 
     @Override
-    public List<Game> getGames() {
-        logger.info("Trying to get list of games from repository.");
-        return gameRepository.findAll();
+    public Page<Game> getGames(int page, int size) {
+        logger.info("Trying to get list of games from repository with params: page= " + page + "; size= " + size);
+        return gameRepository.findAll(PageRequest.of(page, size));
     }
 
     @Override
