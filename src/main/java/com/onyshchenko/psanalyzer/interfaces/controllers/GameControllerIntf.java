@@ -20,7 +20,8 @@ public interface GameControllerIntf {
     @GetMapping
     @Produces(MediaType.APPLICATION_JSON)
     Page<Game> getGames(@RequestParam(required = false, defaultValue = "0") int page,
-                        @RequestParam(required = false, defaultValue = "10") int size);
+                        @RequestParam(required = false, defaultValue = "10") int size,
+                        @RequestParam(required = false, name = "filter") String filter);
 
     @PostMapping()
     @Consumes(MediaType.APPLICATION_JSON)
