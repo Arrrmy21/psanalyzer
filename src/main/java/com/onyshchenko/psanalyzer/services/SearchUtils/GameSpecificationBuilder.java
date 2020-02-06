@@ -5,7 +5,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class GameSpecificationBuilder {
 
@@ -24,12 +23,19 @@ public class GameSpecificationBuilder {
         if (params.size() == 0) {
             return null;
         }
-        List<Specification> specs = params.stream()
-                .map(GameSpecification::new)
-                .collect(Collectors.toList());
 
-        Specification result = specs.get(0);
+        Specification result = new GameSpecification(null, params.get(0));
+
+        for (int i = 1; i < params.size(); i++) {
+            result = Specification.where(result).and(getSpecification(params.get(i)));
+        }
 
         return result;
+    }
+    private Specification getSpecification(SearchCriteria key){
+        if (key.getKey().equals("currentPrice")){
+            return new GameSpecification("price", key);
+        }
+        else return new GameSpecification(null, key);
     }
 }
