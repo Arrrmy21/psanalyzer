@@ -1,10 +1,12 @@
 package com.onyshchenko.psanalyzer.services.SearchUtils;
 
 import com.onyshchenko.psanalyzer.model.Game;
+import com.onyshchenko.psanalyzer.model.RequestFilters;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class GameSpecificationBuilder {
 
@@ -14,7 +16,7 @@ public class GameSpecificationBuilder {
         params = new ArrayList<>();
     }
 
-    public GameSpecificationBuilder with(String key, String operation, Object value) {
+    public GameSpecificationBuilder with(RequestFilters key, String operation, Object value) {
         params.add(new SearchCriteria(key, operation, value));
         return this;
     }
@@ -24,18 +26,10 @@ public class GameSpecificationBuilder {
             return null;
         }
 
-        Specification result = new GameSpecification(null, params.get(0));
-
+        Specification<Game> result = new GameSpecification(params.get(0));
         for (int i = 1; i < params.size(); i++) {
-            result = Specification.where(result).and(getSpecification(params.get(i)));
+            result = Objects.requireNonNull(Specification.where(result)).and(new GameSpecification(params.get(i)));
         }
-
         return result;
-    }
-    private Specification getSpecification(SearchCriteria key){
-        if (key.getKey().equals("currentPrice")){
-            return new GameSpecification("price", key);
-        }
-        else return new GameSpecification(null, key);
     }
 }

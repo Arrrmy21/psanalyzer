@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.xml.bind.ValidationException;
 import java.util.Optional;
 
 @RequestMapping("/games")
@@ -21,7 +22,7 @@ public interface GameControllerIntf {
     @Produces(MediaType.APPLICATION_JSON)
     Page<Game> getGames(@RequestParam(required = false, defaultValue = "0") int page,
                         @RequestParam(required = false, defaultValue = "10") int size,
-                        @RequestParam(required = false, name = "filter") String filter);
+                        @RequestParam(required = false, name = "filter") String filter) throws ValidationException;
 
     @PostMapping()
     @Consumes(MediaType.APPLICATION_JSON)

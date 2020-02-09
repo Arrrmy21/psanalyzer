@@ -12,36 +12,35 @@ import javax.persistence.criteria.Root;
 
 public class GameSpecification implements Specification<Game> {
 
-    private String field;
+    private SearchCriteria criteria;
 
-    public GameSpecification(String field, SearchCriteria criteria) {
-        this.field = field;
+    public GameSpecification(SearchCriteria criteria) {
         this.criteria = criteria;
     }
-
-    private SearchCriteria criteria;
 
     @Override
     public Predicate toPredicate(Root<Game> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
 
-        if (field != null && field.equals("price") && criteria.getOperation().equalsIgnoreCase("=")){
-            Join<Game, Price> priceJoin = root.join("price");
-            return criteriaBuilder.equal(
-                    priceJoin.get("currentPrice"), criteria.getValue() );
-        }
-        if (criteria.getOperation().equalsIgnoreCase(">")) {
-            return criteriaBuilder.greaterThanOrEqualTo(
-                    root.get(criteria.getKey()), criteria.getValue().toString());
-        } else if (criteria.getOperation().equalsIgnoreCase("<")) {
-            return criteriaBuilder.lessThanOrEqualTo(
-                    root.get(criteria.getKey()), criteria.getValue().toString());
-        } else if (criteria.getOperation().equalsIgnoreCase("=")) {
-            if (root.get(criteria.getKey()).getJavaType() == String.class) {
-                return criteriaBuilder.like(
-                        root.get(criteria.getKey()), "%" + criteria.getValue() + "%");
-            } else {
-                return criteriaBuilder.equal(root.get(criteria.getKey()), criteria.getValue());
-            }
+        Join<Game, Price> priceJoin = root.join("price");
+
+        switch (criteria.getKey()) {
+            case PRICE:
+                if (criteria.getOperation().equalsIgnoreCase("=")) {
+                    return criteriaBuilder.equal(priceJoin.get("currentPrice"), criteria.getValue());
+                } else if (criteria.getOperation().equalsIgnoreCase(">")) {
+                    return criteriaBuilder.greaterThan(priceJoin.get("currentPrice"), criteria.getValue().toString());
+                } else if (criteria.getOperation().equalsIgnoreCase("<")) {
+                    return criteriaBuilder.lessThan(
+                            priceJoin.get("currentPrice"), criteria.getValue().toString());
+                }
+                break;
+            case NAME:
+                if (criteria.getOperation().equalsIgnoreCase("=")) {
+                    return criteriaBuilder.like(
+                            root.get(criteria.getKey().getFilterName()), "%" + criteria.getValue() + "%");
+                }
+            default:
+                return null;
         }
         return null;
     }

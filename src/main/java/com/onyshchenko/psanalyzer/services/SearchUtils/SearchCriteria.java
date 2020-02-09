@@ -1,21 +1,23 @@
 package com.onyshchenko.psanalyzer.services.SearchUtils;
 
+import com.onyshchenko.psanalyzer.model.RequestFilters;
+
 public class SearchCriteria {
-    private String key;
+    private RequestFilters key;
     private String operation;
     private Object value;
 
-    public SearchCriteria(String key, String operation, Object value) {
+    public SearchCriteria(RequestFilters key, String operation, Object value) {
         this.key = key;
         this.operation = operation;
         this.value = value;
     }
 
-    public String getKey() {
+    public RequestFilters getKey() {
         return key;
     }
 
-    public void setKey(String key) {
+    public void setKey(RequestFilters key) {
         this.key = key;
     }
 
