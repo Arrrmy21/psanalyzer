@@ -45,8 +45,8 @@ public class UserController implements UserControllerIntf {
 
     @Override
     public ResponseEntity<Object> updateUser(User userDetails) {
-        userRepository.findById(userDetails.getId()).orElseThrow(
-                () -> new IllegalArgumentException("User not found id: " + userDetails.getId()));
+        userRepository.findById(userDetails.getUserId()).orElseThrow(
+                () -> new IllegalArgumentException("User not found id: " + userDetails.getUserId()));
 
         userRepository.save(userDetails);
         return new ResponseEntity<>("User updated.", HttpStatus.OK);
