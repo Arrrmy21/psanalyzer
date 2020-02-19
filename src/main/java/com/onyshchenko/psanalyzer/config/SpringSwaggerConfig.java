@@ -1,4 +1,4 @@
-package com.onyshchenko.psanalyzer.services;
+package com.onyshchenko.psanalyzer.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
