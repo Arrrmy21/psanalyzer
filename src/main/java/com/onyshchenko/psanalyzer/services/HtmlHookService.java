@@ -1,6 +1,5 @@
 package com.onyshchenko.psanalyzer.services;
 
-import com.onyshchenko.psanalyzer.interfaces.controllers.GameControllerIntf;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.Price;
 import org.jsoup.Jsoup;
@@ -26,8 +25,6 @@ public class HtmlHookService {
 
     @Autowired
     private GameService gameService;
-    @Autowired
-    private GameControllerIntf gameController;
 
     private static final Logger logger = LoggerFactory.getLogger(HtmlHookService.class);
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");

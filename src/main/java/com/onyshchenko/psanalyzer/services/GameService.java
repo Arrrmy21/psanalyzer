@@ -1,6 +1,6 @@
 package com.onyshchenko.psanalyzer.services;
 
-import com.onyshchenko.psanalyzer.interfaces.controllers.GameControllerIntf;
+import com.onyshchenko.psanalyzer.dao.GameRepository;
 import com.onyshchenko.psanalyzer.model.Game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +16,12 @@ public class GameService {
     private static final Logger logger = LoggerFactory.getLogger(GameService.class);
 
     @Autowired
-    private GameControllerIntf gameController;
-    @Autowired
     private PriceService priceService;
+    @Autowired
+    private GameRepository gameRepository;
 
     public Optional<Game> checkGameAlreadyExists(String id) {
-        return gameController.getGame(id);
+        return gameRepository.findById(id);
     }
 
     public void checkList(List<Game> games) {
@@ -38,12 +38,12 @@ public class GameService {
             Optional<Game> gameFromDb = checkGameAlreadyExists(game.getId());
             if (!gameFromDb.isPresent()) {
                 logger.info("Creating game record.");
-                gameController.createGame(game);
+                gameRepository.save(game);
             } else {
                 if (game.getPrice().getCurrentPrice() != gameFromDb.get().getPrice().getCurrentPrice()) {
                     logger.info("Checking game price.");
-                    gameFromDb.get().setPrice(priceService.comparePrices(game.getPrice(), gameFromDb.get().getPrice()));
-                    gameController.updateGame(gameFromDb.get());
+                    gameFromDb.get().setPrice(priceService.updatePriceComparingWithExisting(game.getPrice(), gameFromDb.get().getPrice()));
+                    gameRepository.save(gameFromDb.get());
                 } else logger.info("Actual game already exists in DB.");
             }
         }

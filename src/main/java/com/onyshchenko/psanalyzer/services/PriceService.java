@@ -10,7 +10,7 @@ public class PriceService {
 
     private static final Logger logger = LoggerFactory.getLogger(PriceService.class);
 
-    public Price comparePrices(Price gameFromSite, Price gameFromDB) {
+    public Price updatePriceComparingWithExisting(Price gameFromSite, Price gameFromDB) {
         Price newPrice = new Price();
 
         newPrice.setCurrentPrice(gameFromSite.getCurrentPrice());
