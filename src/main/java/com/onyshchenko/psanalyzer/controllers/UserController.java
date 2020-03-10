@@ -31,6 +31,10 @@ public class UserController implements UserControllerIntf {
 
     @Override
     public ResponseEntity<Object> createUser(User user) {
+        Optional<User> userFromDb = userRepository.findById(user.getUserId());
+        if (userFromDb.isPresent()) {
+            return new ResponseEntity<>("User already exists.", HttpStatus.CONFLICT);
+        }
         userRepository.save(user);
         return new ResponseEntity<>("User created.", HttpStatus.CREATED);
     }
