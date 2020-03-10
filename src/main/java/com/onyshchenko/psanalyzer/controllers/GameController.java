@@ -3,11 +3,15 @@ package com.onyshchenko.psanalyzer.controllers;
 import com.onyshchenko.psanalyzer.dao.GameRepository;
 import com.onyshchenko.psanalyzer.interfaces.controllers.GameControllerIntf;
 import com.onyshchenko.psanalyzer.model.Game;
+import com.onyshchenko.psanalyzer.model.RequestFilters;
 import com.onyshchenko.psanalyzer.services.FilteringUtils;
+import com.onyshchenko.psanalyzer.services.GameService;
+import com.onyshchenko.psanalyzer.services.SearchUtils.GameSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.xml.bind.ValidationException;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -26,6 +31,8 @@ public class GameController implements GameControllerIntf {
 
     @Autowired
     private GameRepository gameRepository;
+    @Autowired
+    private GameService gameService;
     @Autowired
     private FilteringUtils filteringUtils;
 
@@ -40,6 +47,11 @@ public class GameController implements GameControllerIntf {
         logger.info("Trying to get list of games from repository with params: page= " + page + "; size= " + size);
         if (filter != null) {
             Specification<Game> spec = FilteringUtils.getSpecificationFromFilter(filter);
+
+            if (((GameSpecification) spec).criteria.getKey().equals(RequestFilters.USERID)) {
+                List<Game> wl = gameService.prepareWishList(((GameSpecification) spec).criteria.getValue());
+                return new PageImpl<>(wl, PageRequest.of(page, size), wl.size());
+            }
             return gameRepository.findAll(spec, PageRequest.of(page, size));
         }
         return gameRepository.findAll(PageRequest.of(page, size));

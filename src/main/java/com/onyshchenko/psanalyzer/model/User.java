@@ -9,8 +9,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -28,13 +28,13 @@ public class User {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "users_wishList", joinColumns = @JoinColumn(name = "user_id"))
-    private List<String> wishList = new ArrayList<>();
+    private Set<String> wishList = new HashSet<>();
 
-    public List<String> getWishList() {
+    public Set<String> getWishList() {
         return wishList;
     }
 
-    public void setWishList(List<String> wishList) {
+    public void setWishList(Set<String> wishList) {
         this.wishList = wishList;
     }
 

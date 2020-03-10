@@ -3,7 +3,8 @@ package com.onyshchenko.psanalyzer.model;
 public enum RequestFilters {
 
     PRICE("price"),
-    NAME("name");
+    NAME("name"),
+    USERID("userId");
 
     RequestFilters(String filter) {
         this.filterName = filter;

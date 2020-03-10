@@ -12,7 +12,7 @@ import javax.persistence.criteria.Root;
 
 public class GameSpecification implements Specification<Game> {
 
-    private SearchCriteria criteria;
+    public SearchCriteria criteria;
 
     public GameSpecification(SearchCriteria criteria) {
         this.criteria = criteria;

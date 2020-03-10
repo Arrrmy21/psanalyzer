@@ -88,24 +88,24 @@ public class HtmlHookService {
         }
     }
 
-    @Scheduled(fixedDelay = 6000000)
-    public void scheduledTask() throws IOException {
-
-        String allGames = "grid/STORE-MSF75508-FULLGAMES/";
-
-        for (int page = 1; page < 205; page++) {
-            logger.info("Get all prices form page: " + page);
-            getDataFromURL(allGames + page);
-        }
-    }
-
-//    @Scheduled(fixedDelay = 60000)
-//    public void debugScheduledTask() throws IOException, InterruptedException {
+//    @Scheduled(fixedDelay = 6000000)
+//    public void scheduledTask() throws IOException {
 //
-//        logger.info("Get exact price", dateTimeFormatter.format(LocalDateTime.now()));
-//        getDataFromURL("product/EP0822-CUSA08403_00-DEADAGEPS4SIEE00");
-//        logger.info("Get all prices", dateTimeFormatter.format(LocalDateTime.now()));
-//        getDataFromURL("home/games");
+//        String allGames = "grid/STORE-MSF75508-FULLGAMES/";
+//
+//        for (int page = 1; page < 205; page++) {
+//            logger.info("Get all prices form page: " + page);
+//            getDataFromURL(allGames + page);
+//        }
 //    }
+
+    @Scheduled(fixedDelay = 60000)
+    public void debugScheduledTask() throws IOException {
+
+        logger.info("Get exact price");
+        getDataFromURL("product/EP0822-CUSA08403_00-DEADAGEPS4SIEE00");
+        logger.info("Get all prices");
+        getDataFromURL("home/games");
+    }
 
 }

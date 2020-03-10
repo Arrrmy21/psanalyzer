@@ -32,6 +32,8 @@ public class FilteringUtils {
                 return RequestFilters.NAME;
             case "price":
                 return RequestFilters.PRICE;
+            case "userId":
+                return RequestFilters.USERID;
             default:
                 throw new ValidationException("Filter parameter {" + key + "} is not valid.");
         }
