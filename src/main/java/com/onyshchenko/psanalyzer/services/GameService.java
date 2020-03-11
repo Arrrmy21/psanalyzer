@@ -7,13 +7,15 @@ import com.onyshchenko.psanalyzer.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Component
 public class GameService {
@@ -56,18 +58,28 @@ public class GameService {
         }
     }
 
-    public List<Game> prepareWishList(Object val) {
+    public Page<Game> prepareWishList(Pageable pageable, long userId) {
 
-        Optional<User> user = userRepository.findById(Long.parseLong((String) val));
-        Set<String> gameList = new HashSet<>();
-        if (user.isPresent()) {
-            gameList = user.get().getWishList();
-        }
+        Optional<User> user = userRepository.findById(userId);
+        int pageSize = pageable.getPageSize();
+        int currentPage = pageable.getPageNumber();
+        int startItem = currentPage * pageSize;
+
+        List<String> gameList = new ArrayList<>();
         List<Game> games = new ArrayList<>();
-        for (String id : gameList) {
-            games.add(gameRepository.getOne(id));
-        }
+        if (user.isPresent()) {
+            gameList = new ArrayList<>(user.get().getWishList());
 
-        return games;
+            for (String id : gameList) {
+                games.add(gameRepository.getOne(id));
+            }
+
+            int toIndex = Math.min(startItem + pageSize, gameList.size());
+            games = games.subList(startItem, toIndex);
+
+        }
+        Page<Game> gamePage
+                = new PageImpl<Game>(games, PageRequest.of(currentPage, pageSize), gameList.size());
+        return gamePage;
     }
 }
