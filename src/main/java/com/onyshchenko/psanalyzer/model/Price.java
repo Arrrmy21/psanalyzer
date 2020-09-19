@@ -3,6 +3,8 @@ package com.onyshchenko.psanalyzer.model;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
@@ -38,12 +40,15 @@ public class Price {
     private int currentPercentageDiscount;
     @Column(name = "highestPercentageDiscount")
     private int highestPercentageDiscount;
+    @Enumerated(EnumType.STRING)
+    private Currency currency;
 
     public Price() {
     }
 
-    public Price(String stringPrice) {
+    public Price(String stringPrice, Currency currency) {
         this.currentPrice = (int) Double.parseDouble(stringPrice);
+        this.currency = currency;
         this.highestPrice = currentPrice;
         this.highestPriceDate = LocalDate.now();
         this.lowestPriceDate = LocalDate.now();
@@ -132,5 +137,9 @@ public class Price {
 
     public void setCurrentDiscount(int currentDiscount) {
         this.currentDiscount = currentDiscount;
+    }
+
+    public Currency getCurrency() {
+        return currency;
     }
 }

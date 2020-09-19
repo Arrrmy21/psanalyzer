@@ -4,6 +4,7 @@ import com.onyshchenko.psanalyzer.dao.GameRepository;
 import com.onyshchenko.psanalyzer.dao.UserRepository;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.User;
+import com.onyshchenko.psanalyzer.services.mapper.GameMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +29,10 @@ public class GameService {
     private UserRepository userRepository;
     @Autowired
     private GameRepository gameRepository;
+    @Autowired
+    private GameMapper gameMapper;
 
-    public Optional<Game> checkGameAlreadyExists(String id) {
+    public Optional<Game> findGameIfAlreadyExists(String id) {
         return gameRepository.findById(id);
     }
 
@@ -44,7 +47,7 @@ public class GameService {
 
         for (Game game : games) {
             logger.info("Checking game record for name: " + game.getName() + ".");
-            Optional<Game> gameFromDb = checkGameAlreadyExists(game.getId());
+            Optional<Game> gameFromDb = findGameIfAlreadyExists(game.getId());
             if (!gameFromDb.isPresent()) {
                 logger.info("Creating game record.");
                 gameRepository.save(game);
@@ -78,8 +81,21 @@ public class GameService {
             games = games.subList(startItem, toIndex);
 
         }
-        Page<Game> gamePage
-                = new PageImpl<Game>(games, PageRequest.of(currentPage, pageSize), gameList.size());
-        return gamePage;
+        return new PageImpl<>(games, PageRequest.of(currentPage, pageSize), gameList.size());
+    }
+
+    public void updateGamePatch(Game updatedData, String gameId) {
+
+        Optional<Game> gameFromDb = gameRepository.findById(gameId);
+
+        Game gameDb;
+        if (gameFromDb.isPresent()) {
+            gameDb = gameFromDb.get();
+            gameMapper.updateGameData(updatedData, gameDb);
+            gameDb.setDetailedInfoFilledIn(true);
+
+            gameRepository.save(gameDb);
+        }
+
     }
 }
