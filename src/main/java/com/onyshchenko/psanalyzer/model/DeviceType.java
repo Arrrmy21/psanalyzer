@@ -46,7 +46,7 @@ public enum DeviceType {
     public static DeviceType of(String deviceName) {
         DeviceType result = map.get(deviceName);
         if (result == null) {
-            throw new IllegalArgumentException("Invalid genre name: " + deviceName);
+            throw new IllegalArgumentException("Invalid genre name [" + deviceName + "]");
         }
         return result;
     }

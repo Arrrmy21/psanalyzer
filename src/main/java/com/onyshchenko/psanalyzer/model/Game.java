@@ -40,9 +40,11 @@ public class Game {
     private Price price;
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
     private Set<Genre> genres;
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
     private Set<DeviceType> deviceTypes;
 
     @Column(name = "release_date")
@@ -51,15 +53,17 @@ public class Game {
     @Column(name = "detailed_info")
     private boolean detailedInfoFilledIn = false;
 
+    @Column(name = "game_publisher")
+    private String publisher;
+
     public Game() {
     }
 
-    public Game(String name, Price price, String url, Category category) {
+    public Game(String name, Price price, String url) {
         this.id = String.valueOf(name.hashCode());
         this.name = name;
         this.url = url;
         this.price = price;
-        this.category = category;
     }
 
     public String getUrl() {
@@ -132,6 +136,14 @@ public class Game {
 
     public void setDetailedInfoFilledIn(boolean detailedInfoFilledIn) {
         this.detailedInfoFilledIn = detailedInfoFilledIn;
+    }
+
+    public String getPublisher() {
+        return publisher;
+    }
+
+    public void setPublisher(String publisher) {
+        this.publisher = publisher;
     }
 
     @Override

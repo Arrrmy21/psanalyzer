@@ -14,19 +14,23 @@ public enum Genre {
     EDUCATIONAL("Образовательные"),
     FAMILY("Семейные"),
     FIGHTING("Единоборства"),
-    FPS("Боевик"),
+    FPS("Боевики"),
     FITNESS("Фитнес"),
     HORROR("Ужасы"),
-    MUSIC("MUSIC/RHYTHM"),
+    MUSIC("Музыка и ритм"),
     PARTY("Тусовка"),
     PLATFORMER("Казуальные"),
     PUZZLE("Пазлы"),
-    RACING("Гонки"),
+    RACING("Вождение и гонки"),
     RPG("Ролевые игры"),
-    SHOOTER("Шутер"),
+    SHOOTER("Шутеры"),
     SIMULATION("Симуляторы"),
+    IMITATION("Имитация"),
     SPORTS("Спорт"),
-    STRATEGY("Стратегия"),
+    STRATEGY("Стратегии"),
+    QUEST("Головоломки"),
+    BRAIN_TRAINING("Тренировка мозга"),
+    ADULT("Для взрослых"),
     UNIQUE("Уникальные");
 
 
@@ -70,7 +74,7 @@ public enum Genre {
     public static Genre of(String genreName) {
         Genre result = map.get(genreName);
         if (result == null) {
-            throw new IllegalArgumentException("Invalid genre name: " + genreName);
+            throw new IllegalArgumentException("Invalid genre name [" + genreName + "]");
         }
         return result;
     }

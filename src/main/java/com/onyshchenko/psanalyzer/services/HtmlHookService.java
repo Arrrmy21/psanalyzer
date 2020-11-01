@@ -1,24 +1,18 @@
 package com.onyshchenko.psanalyzer.services;
 
 import com.onyshchenko.psanalyzer.dao.GameRepository;
-import com.onyshchenko.psanalyzer.model.Category;
 import com.onyshchenko.psanalyzer.model.Currency;
 import com.onyshchenko.psanalyzer.model.DeviceType;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.Genre;
 import com.onyshchenko.psanalyzer.model.Price;
-import io.github.bonigarcia.wdm.WebDriverManager;
-import io.github.bonigarcia.wdm.config.DriverManagerType;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.openqa.selenium.By;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +22,9 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 import java.util.ArrayList;
-import java.util.Locale;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @Component
 public class HtmlHookService {
@@ -45,156 +35,155 @@ public class HtmlHookService {
     @Autowired
     private GameRepository gameRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(HtmlHookService.class);
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("ru"));
-    private static final String psPlusDiscountHtmlClassName = "price-display__price--is-plus-upsell";
+    private static final Logger LOGGER = LoggerFactory.getLogger(HtmlHookService.class);
+    private static final DateTimeFormatter formatter = DateTimeFormatter
+            .ofPattern("d/M/yyyy");
     private static final String BASE_URL = "https://store.playstation.com/ru-ua/";
+    private static final String ALL_GAMES_URL = "category/44d8bb20-653e-431e-8ad0-c0a365f68d2f/";
 
-    public void getDataFromUrlWithJsoup(String url) throws IOException {
+
+    public Document getDataFromUrlWithJsoup(String url) throws IOException {
 
         String address = BASE_URL + url;
 
         Document doc = Jsoup.connect(address).get();
-        logger.info("Doc title {}", doc.title());
+        LOGGER.info("Document received from site with title {}", doc.title());
 
-        List<Game> games = getListOfGamesFromHtml(doc);
-
-        gameService.checkList(games);
+        return doc;
     }
 
-    public void getDataFromUrlWithSelenium(Document doc, String gameId) {
+    public Game getDetailedGameInfoFromDocument(Document doc) {
 
         Game gameForUpdating = new Game();
+        boolean exceptionCaptured = false;
         try {
-            String stringReleaseDate = doc.getElementsByClass("provider-info__list-item").get(1).childNode(0).toString();
-            String releaseDateWithoutSpaces = subString(stringReleaseDate).toLowerCase();
-            if (!releaseDateWithoutSpaces.isEmpty()) {
-                LocalDate releaseDate = LocalDate.parse(releaseDateWithoutSpaces, formatter);
-                gameForUpdating.setReleaseDate(releaseDate);
+            Element element = doc.getElementsByClass("psw-grid-x psw-fill-x psw-l-space-y-m psw-grid-margin-x psw-m-y-0").get(0);
+
+            try {
+                String publisher = element.getElementsByAttributeValueContaining("data-qa", "publisher-value")
+                        .get(0).childNode(0).toString().replaceAll("\n", "");
+                if (publisher.isEmpty()) {
+                    LOGGER.info("Publisher for game is empty.");
+
+                }
+                gameForUpdating.setPublisher(publisher);
+            } catch (Exception ex) {
+                exceptionCaptured = true;
+                LOGGER.info("Exception while getting information about publisher.");
+                ex.printStackTrace();
             }
+
+            try {
+                String stringReleaseDate = element.getElementsByAttributeValueContaining("data-qa", "releaseDate-value")
+                        .get(0).childNode(0).toString().replaceAll("\n", "");
+                if (!stringReleaseDate.isEmpty()) {
+                    LocalDate releaseDate = LocalDate.parse(stringReleaseDate, formatter);
+                    gameForUpdating.setReleaseDate(releaseDate);
+                }
+            } catch (Exception ex) {
+                exceptionCaptured = true;
+                LOGGER.info("Exception while getting information about release Date.");
+                ex.printStackTrace();
+            }
+
             //getting versions of ps
             try {
-                int i = 1;
-                do {
-                    String psVersion = doc.getElementsByClass("playable-on__button-set").get(0).childNode(i).childNode(0).toString();
-                    gameForUpdating.getDeviceTypes().add(DeviceType.of(psVersion));
-                    i += 2;
-                } while (true);
-
-            } catch (IllegalArgumentException | IndexOutOfBoundsException ex) {
-                logger.debug("Exception in parsing ps versions. Probably they are out.");
-                logger.debug(ex.getMessage());
+                String platform = element.getElementsByAttributeValueContaining("data-qa", "platform-value")
+                        .get(0).childNode(0).toString().replaceAll("\n", "");
+                gameForUpdating.getDeviceTypes().add(DeviceType.of(platform));
+            } catch (Exception ex) {
+                exceptionCaptured = true;
+                LOGGER.info("Exception while getting information about platform.");
+                ex.printStackTrace();
             }
-
             //getting genres
             try {
-                int i = 0;
-                do {
-                    String stringGenre = doc.getElementsByClass("tech-specs__menu-items").get(i).childNode(0).toString();
-                    gameForUpdating.getGenres().add(Genre.of(stringGenre));
-                    i++;
-                } while (true);
+                Element genreElements = element.getElementsByAttributeValueContaining("data-qa", "genre-value").get(0);
+                String stringGenreList = genreElements.childNode(0).childNode(0).toString();
+                String[] stringGenres = stringGenreList.split(",");
 
-            } catch (IllegalArgumentException | IndexOutOfBoundsException ex) {
-                logger.debug("Exception in parsing genres. Probably they are out.");
-                logger.debug(ex.getMessage());
+                for (String genre : stringGenres) {
+                    if (Character.isWhitespace(genre.charAt(0))) {
+                        genre = genre.replaceFirst(" ", "");
+                    }
+                    gameForUpdating.getGenres().add(Genre.of(genre));
+                }
+            } catch (Exception ex) {
+                exceptionCaptured = true;
+                LOGGER.info("Exception while getting information about genres.");
+                ex.printStackTrace();
             }
 
-            gameService.updateGamePatch(gameForUpdating, gameId);
         } catch (Exception e) {
-            logger.info("Exception while parsing data from html");
+            exceptionCaptured = true;
+            LOGGER.info("Exception while parsing data from html");
+            e.printStackTrace();
         }
+
+        gameForUpdating.setDetailedInfoFilledIn(!exceptionCaptured);
+        return gameForUpdating;
 
     }
 
+    private List<Game> getListOfGamesFromDocument(Document doc) {
 
-    private List<Game> getListOfGamesFromHtml(Document doc) {
-
-        Predicate<String> name = s -> s.contains("name");
-        Predicate<String> category = s -> s.contains("category");
-        Predicate<String> priceCurrency = s -> s.contains("priceCurrency\"");
-        Predicate<String> price = s -> s.contains("price\"");
-        Predicate<String> sku = s -> s.contains("sku\"");
-
-        Element headline = doc.select("script").attr("type", "application/ld+json").get(0);
-        String elementsByAttribute = headline.childNode(0).toString();
-
-        List<String> allFields = Arrays.asList(elementsByAttribute.split(","));
-
-        List<String> sortedList = allFields.stream()
-                .filter(name.or(category).or(priceCurrency).or(price).or(sku))
-                .collect(Collectors.toList());
-
+        Elements headline = doc.getElementsByClass(
+                "ems-sdk-product-tile-link");
         List<Game> games = new ArrayList<>();
-        // TODO: Replace if cases
-        for (int i = 0; i < sortedList.size(); i++) {
-            if (sortedList.get(i).contains("name")) {
-                String gameName = sortedList.get(i);
-                if (sortedList.get(i + 1).contains("category")) {
-                    String gameCategory = sortedList.get(i + 1);
-                    if (sortedList.get(i + 2).contains("priceCurrency")) {
-                        String gamePriceCurrency = sortedList.get(i + 2);
-                        if (sortedList.get(i + 3).contains("price")) {
-                            String gamePrice = sortedList.get(i + 3);
-                            if (sortedList.get(i + 4).contains("sku")) {
-                                String gameSku = sortedList.get(i + 4);
-                                Price pr = new Price(subString(gamePrice), getCurrencyFromString(gamePriceCurrency));
-                                Game createdGame = new Game(subString(gameName), pr, subString(gameSku), getGameCategory(gameCategory));
-                                games.add(createdGame);
-                            }
-                        }
-                    }
-                }
-            }
-            i = i + 4;
-        }
+        JSONParser parser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
+        for (Element element : headline) {
+            try {
+                JSONObject json = (JSONObject) parser.parse(element.attributes().get("data-telemetry-meta"));
 
+                String gameName = json.getAsString("name");
+                String gameSku = json.getAsString("id");
+                String gamePriceString = json.getAsString("price");
+
+                Price price;
+
+                if (gamePriceString == null || gamePriceString.equalsIgnoreCase("бесплатно")) {
+                    price = new Price();
+                } else {
+                    String priceString = gamePriceString.substring(0, gamePriceString.length() - 4).replaceAll(" ", "");
+                    int intPrice = (int) Double.parseDouble(priceString);
+                    String currencyString = gamePriceString.substring(gamePriceString.length() - 3);
+                    price = new Price(intPrice, getCurrencyFromString(currencyString));
+                }
+
+                Game createdGame = new Game(gameName, price, gameSku);
+                games.add(createdGame);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                LOGGER.info("Parsing error.");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        return games;
 
         // TODO: Implement PS Plus discount price
         // Pay attention to "price-display__price__label". It may contain smth like "Сэкономьте еще 5% благодаря".
-        int amountOfGamesWithPSPlusDiscount = doc.getElementsByClass(psPlusDiscountHtmlClassName).size();
-        HashMap<String, Integer> psPlusPriceList = new HashMap<>();
-        if (amountOfGamesWithPSPlusDiscount > 0) {
-            for (int i = 0; i < amountOfGamesWithPSPlusDiscount; i++) {
-                try {
-                    String psPlusStringPrice = doc.getElementsByClass(psPlusDiscountHtmlClassName).get(i).childNode(0).toString();
-                    int convertedPsPlusPrice = (int) Math.round(Double.parseDouble(psPlusStringPrice.substring(1, 7)));
-                    String gameUrl = doc.getElementsByClass(psPlusDiscountHtmlClassName).get(i).parentNode().parentNode().attributes().get("href");
-                    String separatedGameUrl = gameUrl.split("/", 4)[3];
+//        int amountOfGamesWithPSPlusDiscount = doc.getElementsByClass(psPlusDiscountHtmlClassName).size();
+//        HashMap<String, Integer> psPlusPriceList = new HashMap<>();
+//        if (amountOfGamesWithPSPlusDiscount > 0) {
+//            for (int i = 0; i < amountOfGamesWithPSPlusDiscount; i++) {
+//                try {
+//                    String psPlusStringPrice = doc.getElementsByClass(psPlusDiscountHtmlClassName).get(i).childNode(0).toString();
+//                    int convertedPsPlusPrice = (int) Math.round(Double.parseDouble(psPlusStringPrice.substring(1, 7)));
+//                    String gameUrl = doc.getElementsByClass(psPlusDiscountHtmlClassName).get(i).parentNode().parentNode().attributes().get("href");
+//                    String separatedGameUrl = gameUrl.split("/", 4)[3];
+//
+//                    psPlusPriceList.put(separatedGameUrl, convertedPsPlusPrice);
+//                } catch (Exception ex) {
+//                    logger.info("Exception while converting");
+//                }
+//            }
+//        }
 
-                    psPlusPriceList.put(separatedGameUrl, convertedPsPlusPrice);
-                } catch (Exception ex) {
-                    logger.info("Exception while converting");
-                }
-            }
-        }
-
-        return games;
-    }
-
-    private Category getGameCategory(String gameCategory) {
-        String catVal = gameCategory.replaceAll("\"", "");
-        String resultCategory = catVal.substring(9);
-
-        return Category.of(resultCategory);
-    }
-
-    private String subString(String s) {
-        if (s.contains("sku")) {
-            return s.substring(7, s.length() - 1);
-        } else if (s.contains("price")) {
-            return s.substring(8, s.length() - 2);
-        } else if (s.contains("Премьера")) {
-            return s.substring(9);
-        } else {
-            return s.substring(8, s.length() - 1);
-        }
     }
 
     private Currency getCurrencyFromString(String cur) {
-        String curVal = cur.replaceAll("\"", "");
-        String result = curVal.substring(14);
-        switch (result) {
+        switch (cur) {
             case "UAH":
                 return Currency.UAH;
             default:
@@ -205,56 +194,50 @@ public class HtmlHookService {
 //    @Scheduled(fixedDelay = 6000000)
 //    public void scheduledTask() throws IOException {
 //
-//        String allGames = "grid/STORE-MSF75508-FULLGAMES/";
+//        LOGGER.info("Process of getting games data from url starting.");
+//        for (int page = 1; page < 73; page++) {
+//            LOGGER.info("Get all prices form page: " + page);
+//            Document document = getDataFromUrlWithJsoup(ALL_GAMES_URL + page);
+//            List<Game> games = getListOfGamesFromDocument(document);
+//            gameService.checkList(games);
 //
-//        for (int page = 1; page < 205; page++) {
-//            logger.info("Get all prices form page: " + page);
-//            getDataFromURL(allGames + page);
 //        }
+//        LOGGER.info("Getting of all prices is done.");
 //    }
 
     @Scheduled(fixedDelay = 60000)
     public void debugScheduledTask() throws IOException {
 
-        logger.info("Get all prices.");
-        getDataFromUrlWithJsoup("grid/STORE-MSF75508-FULLGAMES/5");
-        logger.info("Getting of all prices is done.");
+        LOGGER.info("Process of getting games data from url starting.");
+        Document document = getDataFromUrlWithJsoup("category/44d8bb20-653e-431e-8ad0-c0a365f68d2f/1");
+        List<Game> games = getListOfGamesFromDocument(document);
+        gameService.checkList(games);
+
+        LOGGER.info("Getting of all prices is done.");
     }
 
     @Scheduled(fixedDelay = 60000)
     public void gettingDetailedInfoAboutGames() {
-        logger.info("Starting procedure of getting detailed info about games.");
+        LOGGER.info("Starting procedure of getting detailed info about games.");
         List<String> urls;
         urls = gameRepository.urlsOfNotUpdatedGames();
 
-        WebDriverManager.getInstance(DriverManagerType.CHROME).setup();
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless");
-        options.addArguments("--disable-extensions");
-        options.addArguments("no-sandbox");
-        WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, 10);
-
+        if (urls.isEmpty()) {
+            LOGGER.info("All games have detailed info.");
+            return;
+        }
         try {
             for (String url : urls) {
-                String address = BASE_URL + "product/" + url;
+                Document document = getDataFromUrlWithJsoup("product/" + url);
 
-                driver.get(address);
-                try {
-                    wait.until(ExpectedConditions.numberOfElementsToBe(By.className("provider-info__list-item"), 3));
-                } catch (TimeoutException ex) {
-                    logger.info("Fail attempt to get 3 releaseDate elements. Probably just rate removed.");
-                }
-                Document doc = Jsoup.parse(driver.getPageSource());
+                Game gameForUpdating = getDetailedGameInfoFromDocument(document);
 
                 String gameId = gameRepository.getGameIdByUrl(url);
-                getDataFromUrlWithSelenium(doc, gameId);
+                gameService.updateGamePatch(gameForUpdating, gameId);
             }
         } catch (Exception ex) {
-            logger.info("Error while getting Document.");
-        } finally {
-            driver.close();
-            logger.info("Procedure of getting detailed info about games is finished.");
+            LOGGER.info("Error while getting Document.");
+            ex.printStackTrace();
         }
     }
 }

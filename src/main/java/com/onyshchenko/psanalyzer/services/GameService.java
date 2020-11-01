@@ -92,7 +92,6 @@ public class GameService {
         if (gameFromDb.isPresent()) {
             gameDb = gameFromDb.get();
             gameMapper.updateGameData(updatedData, gameDb);
-            gameDb.setDetailedInfoFilledIn(true);
 
             gameRepository.save(gameDb);
         }

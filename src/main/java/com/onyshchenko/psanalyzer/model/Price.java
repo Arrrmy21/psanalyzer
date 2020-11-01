@@ -44,12 +44,8 @@ public class Price {
     private Currency currency;
 
     public Price() {
-    }
-
-    public Price(String stringPrice, Currency currency) {
-        this.currentPrice = (int) Double.parseDouble(stringPrice);
-        this.currency = currency;
-        this.highestPrice = currentPrice;
+        this.currentPrice = 0;
+        this.highestPrice = 0;
         this.highestPriceDate = LocalDate.now();
         this.lowestPriceDate = LocalDate.now();
         this.lowestPrice = currentPrice;
@@ -57,6 +53,13 @@ public class Price {
         this.currentDiscount = 0;
         this.currentPercentageDiscount = 0;
         this.highestPercentageDiscount = 0;
+    }
+
+    public Price(int currentPrice, Currency currency) {
+        this();
+        this.currentPrice = currentPrice;
+        this.currency = currency;
+        this.highestPrice = currentPrice;
     }
 
     public String getId() {
