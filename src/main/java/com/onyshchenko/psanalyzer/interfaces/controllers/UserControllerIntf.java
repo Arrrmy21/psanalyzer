@@ -3,6 +3,7 @@ package com.onyshchenko.psanalyzer.interfaces.controllers;
 import com.onyshchenko.psanalyzer.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,11 +23,13 @@ import java.util.Optional;
 public interface UserControllerIntf {
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Produces(MediaType.APPLICATION_JSON)
     Optional<User> getUser(@PathVariable(value = "id") long id);
 
     @Transactional
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Produces(MediaType.APPLICATION_JSON)
     Page<User> getUsers(@RequestParam(required = false, defaultValue = "0") int page,
                         @RequestParam(required = false, defaultValue = "10") int size);
@@ -36,6 +39,7 @@ public interface UserControllerIntf {
     ResponseEntity<Object> createUser(@RequestBody User user);
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<Object> deleteUser(@PathVariable(value = "id") long id);
 
     @PutMapping

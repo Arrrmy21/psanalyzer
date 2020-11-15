@@ -25,7 +25,7 @@ import java.util.Optional;
 @RestController
 public class GameController implements GameControllerIntf {
 
-    private static final Logger logger = LoggerFactory.getLogger(GameController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GameController.class);
 
     @Autowired
     private GameRepository gameRepository;
@@ -35,23 +35,22 @@ public class GameController implements GameControllerIntf {
     private FilteringUtils filteringUtils;
 
     public Optional<Game> getGame(@PathVariable(value = "id") String id) {
-        logger.info("Trying to get game by id from repository.");
+        LOGGER.info("Trying to get game by id from repository.");
         return gameRepository.findById(id);
     }
 
     @Override
     public Page<Game> getGames(int page, int size, String filter) throws ValidationException {
 
-        logger.info("Trying to get list of games from repository with params: page= " + page + "; size= " + size);
+        LOGGER.info("Trying to get list of games from repository with params: page=[{}], size=[{}]", page, size);
         if (filter != null) {
             Specification<Game> spec = FilteringUtils.getSpecificationFromFilter(filter);
 
             if (((GameSpecification) spec).criteria.getKey().equals(RequestFilters.USERID)) {
                 String sp = String.valueOf(((GameSpecification) spec).criteria.getValue());
                 long userId = Long.parseLong(sp);
-                Page<Game> gamePage = gameService.prepareWishList(PageRequest.of(page, size), userId);
 
-                return gamePage;
+                return gameService.prepareWishList(PageRequest.of(page, size), userId);
             }
             return gameRepository.findAll(spec, PageRequest.of(page, size));
         }
@@ -60,17 +59,18 @@ public class GameController implements GameControllerIntf {
 
     @Override
     public ResponseEntity<Object> createGame(Game game) {
-        logger.info("Trying to create game in repository.");
+        LOGGER.info("Trying to create game in repository.");
         gameRepository.save(game);
         return new ResponseEntity<>("Game created.", HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<Object> updateGame(Game gameDetails) {
-        logger.info("Trying to update the game on repository.");
+        LOGGER.info("Trying to update the game on repository.");
 
-        Game game = gameRepository.findById(gameDetails.getId()).orElseThrow(
-                () -> new IllegalArgumentException("Game not found id: " + gameDetails.getId()));
+        if (!gameRepository.findById(gameDetails.getId()).isPresent()) {
+            throw new IllegalArgumentException("Game not found id: " + gameDetails.getId());
+        }
 
         gameRepository.save(gameDetails);
         return new ResponseEntity<>("Game updated.", HttpStatus.OK);
@@ -78,7 +78,7 @@ public class GameController implements GameControllerIntf {
 
     @Override
     public ResponseEntity<Object> deleteGame(@PathVariable String id) {
-        logger.info("Trying to delete the game from repository.");
+        LOGGER.info("Trying to delete the game from repository.");
         Game game = gameRepository.findById(id).orElseThrow(
                 () -> new NoSuchElementException("Game not found id: " + id));
         gameRepository.delete(game);

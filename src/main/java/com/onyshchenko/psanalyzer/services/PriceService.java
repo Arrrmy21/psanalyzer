@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PriceService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PriceService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PriceService.class);
 
     public Price updatePriceComparingWithExisting(Price gameFromSite, Price gameFromDB) {
         Price newPrice = new Price();
@@ -23,7 +23,7 @@ public class PriceService {
         newPrice.setId(gameFromDB.getId());
 
         if (actualPrice < lowestPrice) {
-            logger.info("Reached the lowest price.");
+            LOGGER.info("Reached the lowest price.");
             newPrice.setLowestPrice(actualPrice);
             newPrice.setLowestPriceDate(gameFromSite.getLowestPriceDate());
 
@@ -33,7 +33,7 @@ public class PriceService {
             newPrice.setCurrentPercentageDiscount(currentPercentageDiscount);
 
             if (currentDiscount > gameFromDB.getHighestDiscount()) {
-                logger.info("Reached the highest discount.");
+                LOGGER.info("Reached the highest discount.");
                 newPrice.setHighestDiscount(currentDiscount);
                 newPrice.setHighestPercentageDiscount(currentPercentageDiscount);
             }

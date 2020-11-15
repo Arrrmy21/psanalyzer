@@ -22,7 +22,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -45,6 +44,7 @@ public class HtmlHookService {
     public Document getDataFromUrlWithJsoup(String url) throws IOException {
 
         String address = BASE_URL + url;
+        LOGGER.info("Getting document from address: [{}]", address);
 
         Document doc = Jsoup.connect(address).get();
         LOGGER.info("Document received from site with title {}", doc.title());
@@ -219,20 +219,21 @@ public class HtmlHookService {
     @Scheduled(fixedDelay = 60000)
     public void gettingDetailedInfoAboutGames() {
         LOGGER.info("Starting procedure of getting detailed info about games.");
-        List<String> urls;
-        urls = gameRepository.urlsOfNotUpdatedGames();
+        List<String> urls = gameService.getUrlsOfNotUpdatedGames();
 
-        if (urls.isEmpty()) {
+        if (urls == null || urls.isEmpty()) {
             LOGGER.info("All games have detailed info.");
             return;
         }
+        LOGGER.info("Collected [{}] games which are not fully filled.", urls.size());
+
         try {
             for (String url : urls) {
                 Document document = getDataFromUrlWithJsoup("product/" + url);
 
                 Game gameForUpdating = getDetailedGameInfoFromDocument(document);
 
-                String gameId = gameRepository.getGameIdByUrl(url);
+                String gameId = gameService.getGameIdByUrl(url);
                 gameService.updateGamePatch(gameForUpdating, gameId);
             }
         } catch (Exception ex) {

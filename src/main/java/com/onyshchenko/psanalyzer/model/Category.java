@@ -14,6 +14,7 @@ public enum Category {
     MAP("Пакет карт"),
     THEME("Тема"),
     DYNTHEME("Динамическая тема"),
+    GAME("Игра"),
     AVATAR("Аватар");
 
     private static Map<String, Category> map = new HashMap<>(values().length, 1);

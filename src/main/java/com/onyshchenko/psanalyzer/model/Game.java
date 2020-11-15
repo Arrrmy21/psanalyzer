@@ -29,7 +29,8 @@ public class Game {
     @Column(name = "game_name")
     private String name;
 
-    @Column(name = "game_url")
+    @NotNull
+    @Column(name = "game_url", unique =  true)
     private String url;
 
     @Enumerated(EnumType.STRING)
