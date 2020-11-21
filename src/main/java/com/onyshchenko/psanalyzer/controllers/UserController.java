@@ -37,7 +37,7 @@ public class UserController implements UserControllerIntf {
 
         User createdUser = userService.register(user);
         if (createdUser == null) {
-            return new ResponseEntity<>("User already exists.", HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("User already exists.", HttpStatus.OK);
         }
         return new ResponseEntity<>("User created.", HttpStatus.CREATED);
     }

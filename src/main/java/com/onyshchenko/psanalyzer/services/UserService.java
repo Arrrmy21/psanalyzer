@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -34,8 +35,14 @@ public class UserService {
 
     public User register(User user) {
 
+        LOGGER.info("Trying to register user with username [{}].", user.getUsername());
         if (user.getUserId() != 0) {
             Optional<User> userFromDb = userRepository.findById(user.getUserId());
+            if (userFromDb.isPresent()) {
+                return null;
+            }
+        } else if (user.getUsername() != null) {
+            Optional<User> userFromDb = Optional.ofNullable(userRepository.findByUsername(user.getUsername()));
             if (userFromDb.isPresent()) {
                 return null;
             }
@@ -87,6 +94,13 @@ public class UserService {
         LOGGER.info("Getting user by name {}.", result.getUsername());
 
         return result;
+    }
+
+    public ArrayList<Long> getAllIds() {
+
+        ArrayList<Long> idsOfAllUsers = userRepository.getAllIds();
+
+        return idsOfAllUsers;
     }
 
 }

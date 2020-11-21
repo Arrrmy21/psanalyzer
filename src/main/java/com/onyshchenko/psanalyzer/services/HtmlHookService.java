@@ -6,6 +6,7 @@ import com.onyshchenko.psanalyzer.model.DeviceType;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.Genre;
 import com.onyshchenko.psanalyzer.model.Price;
+import com.onyshchenko.psanalyzer.model.User;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -16,6 +17,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,12 +26,16 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class HtmlHookService {
 
     @Autowired
     private GameService gameService;
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private GameRepository gameRepository;
@@ -39,6 +45,10 @@ public class HtmlHookService {
             .ofPattern("d/M/yyyy");
     private static final String BASE_URL = "https://store.playstation.com/ru-ua/";
     private static final String ALL_GAMES_URL = "category/44d8bb20-653e-431e-8ad0-c0a365f68d2f/";
+    private static final String TELEGRAM_URL = "https://api.telegram.org/bot";
+    private static final String NOTIFICATION = "There are discounts on games in your wishList. Check it ^_^";
+    @Value("${bot.token}")
+    private String BOT_TOKEN;
 
 
     public Document getDataFromUrlWithJsoup(String url) throws IOException {
@@ -239,6 +249,57 @@ public class HtmlHookService {
         } catch (Exception ex) {
             LOGGER.info("Error while getting Document.");
             ex.printStackTrace();
+        }
+    }
+
+    @Scheduled(fixedDelay = 60000)
+    public void checkUsersWishListAndSendNotifications() {
+
+        String chatId = null;
+
+        List<Long> userIds = userService.getAllIds();
+
+        for (Long userId : userIds) {
+
+            boolean notifyUser = false;
+            Optional<User> user = userService.findById(userId);
+
+            if (user.isPresent()) {
+                User userObject = user.get();
+
+                if (userObject.getChatId() != null) {
+                    chatId = userObject.getChatId();
+                } else {
+                    continue;
+                }
+                Set<String> wishlist = userObject.getWishList();
+
+                if (wishlist.isEmpty()) {
+                    continue;
+                }
+                for (String gameId : wishlist) {
+                    Optional<Game> game = gameService.findGameIfAlreadyExists(gameId);
+                    if (game.isPresent()) {
+                        if (game.get().getPrice().hasDiscount()) {
+                            notifyUser = true;
+
+                            break;
+                        }
+                    }
+                }
+
+            }
+
+
+            if (notifyUser) {
+                try {
+                    String address = TELEGRAM_URL + BOT_TOKEN + "/sendMessage?chat_id=" + chatId + "&text=" + NOTIFICATION;
+                    LOGGER.info("Sending message to user [{}]", userId);
+                    Jsoup.connect(address).post();
+                } catch (IOException e) {
+                    LOGGER.info("Exception while sending message to user.");
+                }
+            }
         }
     }
 }

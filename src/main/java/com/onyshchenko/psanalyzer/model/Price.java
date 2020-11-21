@@ -145,4 +145,8 @@ public class Price {
     public Currency getCurrency() {
         return currency;
     }
+
+    public boolean hasDiscount(){
+        return currentDiscount != 0;
+    }
 }
