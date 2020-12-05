@@ -1,4 +1,4 @@
-package com.onyshchenko.psanalyzer.interfaces.controllers;
+package com.onyshchenko.psanalyzer.controllers.interfaces;
 
 import com.onyshchenko.psanalyzer.model.Game;
 import org.springframework.data.domain.Page;

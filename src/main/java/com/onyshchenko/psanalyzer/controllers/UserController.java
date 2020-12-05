@@ -1,7 +1,7 @@
 package com.onyshchenko.psanalyzer.controllers;
 
 import com.onyshchenko.psanalyzer.dao.UserRepository;
-import com.onyshchenko.psanalyzer.interfaces.controllers.UserControllerIntf;
+import com.onyshchenko.psanalyzer.controllers.interfaces.UserControllerIntf;
 import com.onyshchenko.psanalyzer.model.User;
 import com.onyshchenko.psanalyzer.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

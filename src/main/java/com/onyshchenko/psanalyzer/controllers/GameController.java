@@ -1,7 +1,7 @@
 package com.onyshchenko.psanalyzer.controllers;
 
 import com.onyshchenko.psanalyzer.dao.GameRepository;
-import com.onyshchenko.psanalyzer.interfaces.controllers.GameControllerIntf;
+import com.onyshchenko.psanalyzer.controllers.interfaces.GameControllerIntf;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.RequestFilters;
 import com.onyshchenko.psanalyzer.services.FilteringUtils;
