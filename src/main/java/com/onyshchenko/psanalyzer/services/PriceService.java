@@ -5,47 +5,47 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 @Component
 public class PriceService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PriceService.class);
 
-    public Price updatePriceComparingWithExisting(Price gameFromSite, Price gameFromDB) {
-        Price newPrice = new Price();
+    public void updatePriceComparingWithExisting(Price gameFromSite, Price gameFromDB) {
 
-        newPrice.setCurrentPrice(gameFromSite.getCurrentPrice());
-        newPrice.setHighestPrice(gameFromDB.getHighestPrice());
-        newPrice.setHighestPriceDate(gameFromDB.getHighestPriceDate());
+        int actualPrice = gameFromSite.getCurrentPrice();
 
         int oldPrice = gameFromDB.getCurrentPrice();
-        int actualPrice = gameFromSite.getCurrentPrice();
         int lowestPrice = gameFromDB.getLowestPrice();
-        newPrice.setId(gameFromDB.getId());
+        int highestPrice = gameFromDB.getHighestPrice();
+
 
         if (actualPrice < lowestPrice) {
             LOGGER.info("Reached the lowest price.");
-            newPrice.setLowestPrice(actualPrice);
-            newPrice.setLowestPriceDate(gameFromSite.getLowestPriceDate());
+            gameFromDB.setLowestPrice(actualPrice);
+            gameFromDB.setLowestPriceDate(LocalDate.now());
 
             int currentDiscount = evaluateDiscount(oldPrice, actualPrice);
             int currentPercentageDiscount = evaluatePercentageDiscount(oldPrice, actualPrice);
-            newPrice.setCurrentDiscount(currentDiscount);
-            newPrice.setCurrentPercentageDiscount(currentPercentageDiscount);
+            gameFromDB.setCurrentDiscount(currentDiscount);
+            gameFromDB.setCurrentPercentageDiscount(currentPercentageDiscount);
 
             if (currentDiscount > gameFromDB.getHighestDiscount()) {
                 LOGGER.info("Reached the highest discount.");
-                newPrice.setHighestDiscount(currentDiscount);
-                newPrice.setHighestPercentageDiscount(currentPercentageDiscount);
+                gameFromDB.setHighestDiscount(currentDiscount);
+                gameFromDB.setHighestPercentageDiscount(currentPercentageDiscount);
             }
-        } else {
-            newPrice.setLowestPrice(gameFromDB.getLowestPrice());
-            newPrice.setLowestPriceDate(gameFromDB.getLowestPriceDate());
-            newPrice.setCurrentDiscount(0);
-            newPrice.setCurrentPercentageDiscount(0);
-            newPrice.setHighestDiscount(gameFromDB.getHighestDiscount());
-            newPrice.setHighestPercentageDiscount(gameFromDB.getHighestPercentageDiscount());
+        } else if (actualPrice > highestPrice) {
+            LOGGER.info("Reached the highest price. WTF?");
+
+            gameFromDB.setHighestPrice(actualPrice);
+            gameFromDB.setHighestPriceDate(LocalDate.now());
+            gameFromDB.setCurrentDiscount(0);
+            gameFromDB.setCurrentPercentageDiscount(0);
         }
-        return newPrice;
+
+        gameFromDB.setCurrentPrice(actualPrice);
     }
 
     private int evaluateDiscount(int oldPrice, int newPrice) {

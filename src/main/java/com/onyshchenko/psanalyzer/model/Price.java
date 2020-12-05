@@ -58,6 +58,7 @@ public class Price {
     public Price(int currentPrice, Currency currency) {
         this();
         this.currentPrice = currentPrice;
+        this.lowestPrice = currentPrice;
         this.currency = currency;
         this.highestPrice = currentPrice;
     }
@@ -144,6 +145,10 @@ public class Price {
 
     public Currency getCurrency() {
         return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
     }
 
     public boolean hasDiscount(){

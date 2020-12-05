@@ -54,7 +54,9 @@ public class GameService {
             } else {
                 if (game.getPrice().getCurrentPrice() != gameFromDb.get().getPrice().getCurrentPrice()) {
                     LOGGER.info("Checking game price.");
-                    gameFromDb.get().setPrice(priceService.updatePriceComparingWithExisting(game.getPrice(), gameFromDb.get().getPrice()));
+
+                    priceService.updatePriceComparingWithExisting(game.getPrice(), gameFromDb.get().getPrice());
+
                     gameRepository.save(gameFromDb.get());
                 } else LOGGER.info("Actual game already exists in DB.");
             }
