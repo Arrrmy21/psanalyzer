@@ -12,6 +12,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByUsername(String username);
 
-    @Query("select userId from User users")
-    ArrayList<Long> getAllIds();
+    @Query(
+            value = "select distinct users.user_id as id from users " +
+                    "inner JOIN users_wish_list on users_wish_list.user_id = users.user_id " +
+                    "left outer join games on games.id = users_wish_list.wish_list " +
+                    "left outer join prices on prices.id = games.prices_id " +
+                    "where (prices.current_discount > 0)", nativeQuery = true
+    )
+    ArrayList<Long> getIdOfUsersThatHaveDiscountOnGameInWishlist();
 }

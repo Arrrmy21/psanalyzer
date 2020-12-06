@@ -33,12 +33,13 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    public User register(User user) {
+    public String register(User user) {
 
         LOGGER.info("Trying to register user with username [{}].", user.getUsername());
         if (user.getUserId() != 0) {
             Optional<User> userFromDb = userRepository.findById(user.getUserId());
             if (userFromDb.isPresent()) {
+                LOGGER.info("User id is present in database.");
                 return null;
             }
         } else if (user.getUsername() != null) {
@@ -47,8 +48,10 @@ public class UserService {
                 return null;
             }
         } else {
-            user.setUserId(user.getUsername().hashCode());
+            return "User needs userName for registration.";
         }
+
+        user.setUserId(user.getUsername().hashCode());
 
         Role roleUser = roleRepository.findByName("ROLE_USER");
         Set<Role> userRoles = new HashSet<>();
@@ -66,7 +69,7 @@ public class UserService {
 
         LOGGER.info("User [{}] successfully registered.", registeredUser.getUsername());
 
-        return registeredUser;
+        return "User created.";
     }
 
     public Page<User> findAll(int page, int size) {
@@ -96,11 +99,8 @@ public class UserService {
         return result;
     }
 
-    public ArrayList<Long> getAllIds() {
+    public ArrayList<Long> getAllUsersWithDiscountOnGameInWishlist() {
 
-        ArrayList<Long> idsOfAllUsers = userRepository.getAllIds();
-
-        return idsOfAllUsers;
+        return userRepository.getIdOfUsersThatHaveDiscountOnGameInWishlist();
     }
-
 }

@@ -35,11 +35,15 @@ public class UserController implements UserControllerIntf {
     @Override
     public ResponseEntity<Object> createUser(User user) {
 
-        User createdUser = userService.register(user);
+        String createdUser = userService.register(user);
         if (createdUser == null) {
             return new ResponseEntity<>("User already exists.", HttpStatus.OK);
+        } else if (createdUser.equalsIgnoreCase("User needs userName for registration.")) {
+            return new ResponseEntity<>("Sorry, but service available only for users with userName. Please provide it in settings", HttpStatus.OK);
+        } else if (createdUser.equalsIgnoreCase("User created.")) {
+            return new ResponseEntity<>("User created.", HttpStatus.CREATED);
         }
-        return new ResponseEntity<>("User created.", HttpStatus.CREATED);
+        return new ResponseEntity<>("Unknown operation result.", HttpStatus.FORBIDDEN);
     }
 
     @Override

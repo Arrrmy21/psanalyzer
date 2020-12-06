@@ -76,7 +76,12 @@ public class GameService {
             gameList = new ArrayList<>(user.get().getWishList());
 
             for (String id : gameList) {
-                games.add(gameRepository.getOne(id));
+                Optional<Game> game = gameRepository.findById(id);
+                if (game.isPresent()) {
+                    games.add(game.get());
+                } else {
+                    LOGGER.info("Game [{}] in user's wishlist doesn't exist", id);
+                }
             }
 
             int toIndex = Math.min(startItem + pageSize, gameList.size());
