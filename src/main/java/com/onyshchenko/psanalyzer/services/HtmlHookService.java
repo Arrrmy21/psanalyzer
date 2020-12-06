@@ -124,13 +124,14 @@ public class HtmlHookService {
                 ex.printStackTrace();
             }
 
+            gameForUpdating.setDetailedInfoFilledIn(true);
         } catch (Exception e) {
             exceptionCaptured = true;
             LOGGER.info("Exception while parsing data from html");
             e.printStackTrace();
         }
 
-        gameForUpdating.setDetailedInfoFilledIn(!exceptionCaptured);
+        gameForUpdating.setErrorWhenFilling(exceptionCaptured);
         return gameForUpdating;
 
     }
@@ -163,7 +164,6 @@ public class HtmlHookService {
                 Game createdGame = new Game(gameName, price, gameSku);
                 games.add(createdGame);
             } catch (ParseException e) {
-                e.printStackTrace();
                 LOGGER.info("Parsing error.");
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -201,32 +201,31 @@ public class HtmlHookService {
         }
     }
 
-//    @Scheduled(fixedDelay = 6000000)
-//    public void scheduledTask() throws IOException {
-//
-//        LOGGER.info("Process of getting games data from url starting.");
-//        for (int page = 1; page < 73; page++) {
-//            LOGGER.info("Get all prices form page: " + page);
-//            Document document = getDataFromUrlWithJsoup(ALL_GAMES_URL + page);
-//            List<Game> games = getListOfGamesFromDocument(document);
-//            gameService.checkList(games);
-//
-//        }
-//        LOGGER.info("Getting of all prices is done.");
-//    }
-
-    @Scheduled(fixedDelay = 60000)
-    public void debugScheduledTask() throws IOException {
+    @Scheduled(fixedDelay = 6000000)
+    public void scheduledTask() throws IOException {
 
         LOGGER.info("Process of getting games data from url starting.");
-        Document document = getDataFromUrlWithJsoup("category/44d8bb20-653e-431e-8ad0-c0a365f68d2f/1");
-        List<Game> games = getListOfGamesFromDocument(document);
-        gameService.checkList(games);
-
+        for (int page = 1; page < 74; page++) {
+            LOGGER.info("Get all prices form page: [{}].", page);
+            Document document = getDataFromUrlWithJsoup(ALL_GAMES_URL + page);
+            List<Game> games = getListOfGamesFromDocument(document);
+            gameService.checkList(games);
+        }
         LOGGER.info("Getting of all prices is done.");
     }
 
-    @Scheduled(fixedDelay = 60000)
+//    @Scheduled(fixedDelay = 600000)
+//    public void debugScheduledTask() throws IOException {
+//
+//        LOGGER.info("Process of getting games data from url starting.");
+//        Document document = getDataFromUrlWithJsoup("category/44d8bb20-653e-431e-8ad0-c0a365f68d2f/1");
+//        List<Game> games = getListOfGamesFromDocument(document);
+//        gameService.checkList(games);
+//
+//        LOGGER.info("Getting of all prices is done.");
+//    }
+
+    @Scheduled(fixedDelay = 600000)
     public void gettingDetailedInfoAboutGames() {
         LOGGER.info("Starting procedure of getting detailed info about games.");
         List<String> urls = gameService.getUrlsOfNotUpdatedGames();
@@ -250,6 +249,7 @@ public class HtmlHookService {
             LOGGER.info("Error while getting Document.");
             ex.printStackTrace();
         }
+        LOGGER.info("Procedure of getting detailed info about games finished.");
     }
 
     @Scheduled(fixedDelay = 60000)

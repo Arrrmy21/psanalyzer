@@ -54,6 +54,9 @@ public class Game {
     @Column(name = "detailed_info")
     private boolean detailedInfoFilledIn = false;
 
+    @Column(name = "error_filling")
+    private Boolean errorWhenFilling;
+
     @Column(name = "game_publisher")
     private String publisher;
 
@@ -145,6 +148,14 @@ public class Game {
 
     public void setPublisher(String publisher) {
         this.publisher = publisher;
+    }
+
+    public Boolean isErrorWhenFilling() {
+        return errorWhenFilling;
+    }
+
+    public void setErrorWhenFilling(Boolean errorWhenFilling) {
+        this.errorWhenFilling = errorWhenFilling;
     }
 
     @Override

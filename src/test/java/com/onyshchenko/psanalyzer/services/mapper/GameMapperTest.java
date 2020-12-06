@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class GameMapperTest {
@@ -32,6 +33,7 @@ public class GameMapperTest {
         assertNotNull(defaultGame.getGenres());
         assertNotNull(defaultGame.getUrl());
         assertNotNull(defaultGame.getCategory());
+        assertFalse(defaultGame.isErrorWhenFilling());
     }
 
     private Game prepareDefaultGame() {
@@ -49,6 +51,7 @@ public class GameMapperTest {
         game.setUrl("new-game-Url-123");
         game.setCategory(Category.LEVEL);
         game.setName(NEW_GAME_NAME);
+        game.setErrorWhenFilling(false);
 
         return game;
     }
