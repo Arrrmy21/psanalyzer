@@ -2,8 +2,12 @@ package com.onyshchenko.psanalyzer.controllers;
 
 import com.onyshchenko.psanalyzer.dao.UserRepository;
 import com.onyshchenko.psanalyzer.controllers.interfaces.UserControllerIntf;
+import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.User;
+import com.onyshchenko.psanalyzer.services.GameService;
 import com.onyshchenko.psanalyzer.services.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -16,11 +20,14 @@ import java.util.Optional;
 @RestController
 public class UserController implements UserControllerIntf {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
     private static final String USER_NOT_FOUND = "User not found id: ";
     @Autowired
     private UserRepository userRepository;
     @Autowired
     private UserService userService;
+    @Autowired
+    private GameService gameService;
 
     @Override
     public Page<User> getUsers(int page, int size) {
@@ -68,18 +75,28 @@ public class UserController implements UserControllerIntf {
     public ResponseEntity<Object> addGameToWishList(long userId, String gameId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new IllegalArgumentException(USER_NOT_FOUND + userId));
-        user.getWishList().add(gameId);
-        userRepository.save(user);
-        return new ResponseEntity<>("Game id: " + gameId + " added to wish list.", HttpStatus.OK);
+        Optional<Game> game = gameService.findGameIfAlreadyExists(gameId);
+        if (game.isPresent()) {
+            user.getWishList().add(gameId);
+            userRepository.save(user);
+            LOGGER.info("Game id: [{}] added to wishlist of user [{}].", gameId, userId);
+            return new ResponseEntity<>("Game : [" + game.get().getName() + "] added to wish list.", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Game with id: " + gameId + " doesn't exist.", HttpStatus.BAD_REQUEST);
     }
 
     @Override
     public ResponseEntity<Object> deleteGameFromWishList(long userId, String gameId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new IllegalArgumentException(USER_NOT_FOUND + userId));
-        user.getWishList().remove(gameId);
-        userRepository.save(user);
-        return new ResponseEntity<>("Game id:+" + gameId + " deleted from wish list.", HttpStatus.OK);
+        Optional<Game> game = gameService.findGameIfAlreadyExists(gameId);
+        if (game.isPresent()) {
+            user.getWishList().remove(gameId);
+            userRepository.save(user);
+            LOGGER.info("Game id: [{}] removed from wishlist of user [{}].", gameId, userId);
+            return new ResponseEntity<>("Game : [" + game.get().getName() + "] removed from  wish list.", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Game with id: " + gameId + " doesn't exist.", HttpStatus.BAD_REQUEST);
     }
 
     @Override
