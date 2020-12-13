@@ -37,7 +37,7 @@ public class UserService {
 
         LOGGER.info("Trying to register user with username [{}].", user.getUsername());
         if (user.getUserId() != 0) {
-            Optional<User> userFromDb = userRepository.findById(user.getUserId());
+            Optional<User> userFromDb = userRepository.findById((long) user.getUsername().hashCode());
             if (userFromDb.isPresent()) {
                 LOGGER.info("User id is present in database.");
                 return null;
