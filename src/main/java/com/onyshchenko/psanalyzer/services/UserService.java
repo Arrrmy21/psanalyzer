@@ -37,7 +37,7 @@ public class UserService {
 
         LOGGER.info("Trying to register user with username [{}].", user.getUsername());
         if (user.getUserId() != 0) {
-            Optional<User> userFromDb = userRepository.findById((long) user.getUsername().hashCode());
+            Optional<User> userFromDb = userRepository.findById(user.getUserId());
             if (userFromDb.isPresent()) {
                 LOGGER.info("User id is present in database.");
                 return null;
@@ -51,7 +51,7 @@ public class UserService {
             return "User needs userName for registration.";
         }
 
-        user.setUserId(user.getUsername().hashCode());
+        user.setUserId(user.getUserId());
 
         Role roleUser = roleRepository.findByName("ROLE_USER");
         Set<Role> userRoles = new HashSet<>();
