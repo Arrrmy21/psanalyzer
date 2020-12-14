@@ -30,6 +30,10 @@ public class Game {
     private String name;
 
     @NotNull
+    @Column(name = "game_search_name")
+    private String searchName;
+
+    @NotNull
     @Column(name = "game_url", unique =  true)
     private String url;
 
@@ -66,6 +70,7 @@ public class Game {
     public Game(String name, Price price, String url) {
         this.id = String.valueOf(name.hashCode());
         this.name = name;
+        this.searchName = name.toLowerCase();
         this.url = url;
         this.price = price;
     }
@@ -100,6 +105,10 @@ public class Game {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSearchName() {
+        return searchName;
     }
 
     public Category getCategory() {

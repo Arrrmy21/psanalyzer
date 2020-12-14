@@ -22,7 +22,7 @@ public class GameSpecificationBuilder {
     }
 
     public Specification<Game> build() {
-        if (params.size() == 0) {
+        if (params.isEmpty()) {
             return null;
         }
 

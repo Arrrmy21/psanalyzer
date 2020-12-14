@@ -3,7 +3,7 @@ package com.onyshchenko.psanalyzer.model;
 public enum RequestFilters {
 
     PRICE("price"),
-    NAME("name"),
+    NAME("searchName"),
     USERID("userId");
 
     RequestFilters(String filter) {

@@ -37,8 +37,9 @@ public class GameSpecification implements Specification<Game> {
             case NAME:
                 if (criteria.getOperation().equalsIgnoreCase("=")) {
                     return criteriaBuilder.like(
-                            root.get(criteria.getKey().getFilterName()), "%" + criteria.getValue() + "%");
+                            root.get(criteria.getKey().getFilterName()), "%" + criteria.getValue().toString().toLowerCase() + "%");
                 }
+                break;
             default:
                 return null;
         }

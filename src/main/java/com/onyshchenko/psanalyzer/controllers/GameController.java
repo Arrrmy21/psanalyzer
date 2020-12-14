@@ -35,7 +35,7 @@ public class GameController implements GameControllerIntf {
     private FilteringUtils filteringUtils;
 
     public Optional<Game> getGame(@PathVariable(value = "id") String id) {
-        LOGGER.info("Trying to get game by id from repository.");
+        LOGGER.info("Trying to get game by id [{}] from repository.", id);
         return gameRepository.findById(id);
     }
 
