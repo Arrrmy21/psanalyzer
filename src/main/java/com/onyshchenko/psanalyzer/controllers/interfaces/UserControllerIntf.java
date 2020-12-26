@@ -57,4 +57,8 @@ public interface UserControllerIntf {
 
     @DeleteMapping("/{userId}/all")
     ResponseEntity<Object> clearWishList(@PathVariable(value = "userId") long userId);
+
+    @PostMapping("/notifyAll")
+    @Consumes(MediaType.APPLICATION_JSON)
+    ResponseEntity<Object> notifyAllUsersProcedureStart();
 }

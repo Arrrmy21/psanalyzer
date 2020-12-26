@@ -6,6 +6,7 @@ import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.RequestFilters;
 import com.onyshchenko.psanalyzer.services.FilteringUtils;
 import com.onyshchenko.psanalyzer.services.GameService;
+import com.onyshchenko.psanalyzer.services.HtmlHookService;
 import com.onyshchenko.psanalyzer.services.SearchUtils.GameSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.xml.bind.ValidationException;
+import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -33,6 +35,8 @@ public class GameController implements GameControllerIntf {
     private GameService gameService;
     @Autowired
     private FilteringUtils filteringUtils;
+    @Autowired
+    private HtmlHookService htmlHookService;
 
     public Optional<Game> getGame(@PathVariable(value = "id") String id) {
         LOGGER.info("Trying to get game by id [{}] from repository.", id);
@@ -85,4 +89,13 @@ public class GameController implements GameControllerIntf {
         return new ResponseEntity<>("Game deleted.", HttpStatus.OK);
     }
 
+    @Override
+    public ResponseEntity<Object> startUpdateGameProcedure() {
+        try {
+            htmlHookService.collectMinimalDataAboutGamesScheduledTask();
+        } catch (IOException e) {
+            LOGGER.info("Error while updating games from controller.");
+        }
+        return new ResponseEntity<>("Games updated.", HttpStatus.OK);
+    }
 }

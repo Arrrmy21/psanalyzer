@@ -46,4 +46,9 @@ public interface GameControllerIntf {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<Object> deleteGame(@PathVariable String id);
+
+    @PostMapping("/startUpdateProcedure")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Consumes(MediaType.APPLICATION_JSON)
+    ResponseEntity<Object> startUpdateGameProcedure();
 }

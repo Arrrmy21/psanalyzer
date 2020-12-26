@@ -5,6 +5,7 @@ import com.onyshchenko.psanalyzer.controllers.interfaces.UserControllerIntf;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.User;
 import com.onyshchenko.psanalyzer.services.GameService;
+import com.onyshchenko.psanalyzer.services.HtmlHookService;
 import com.onyshchenko.psanalyzer.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,8 @@ public class UserController implements UserControllerIntf {
     private UserService userService;
     @Autowired
     private GameService gameService;
+    @Autowired
+    private HtmlHookService htmlHookService;
 
     @Override
     public Page<User> getUsers(int page, int size) {
@@ -106,5 +109,11 @@ public class UserController implements UserControllerIntf {
         user.getWishList().clear();
         userRepository.save(user);
         return new ResponseEntity<>("Wish list cleaned up.", HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<Object> notifyAllUsersProcedureStart() {
+        htmlHookService.checkUsersWishListAndSendNotifications();
+        return new ResponseEntity<>("Users notified.", HttpStatus.OK);
     }
 }
