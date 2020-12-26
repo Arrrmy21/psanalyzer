@@ -23,8 +23,8 @@ public class InitializeData {
     public void loadData() {
 
         LOGGER.info("Loading predefined data to database.");
-        ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator(false, false, "UTF-8",
-                new ClassPathResource("data.sql"));
+        ResourceDatabasePopulator resourceDatabasePopulator =
+                new ResourceDatabasePopulator(new ClassPathResource("data.sql"));
         resourceDatabasePopulator.execute(dataSource);
         LOGGER.info("Loading predefined data to database FINISHED.");
     }
