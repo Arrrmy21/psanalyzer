@@ -7,7 +7,7 @@ import com.onyshchenko.psanalyzer.model.RequestFilters;
 import com.onyshchenko.psanalyzer.services.FilteringUtils;
 import com.onyshchenko.psanalyzer.services.GameService;
 import com.onyshchenko.psanalyzer.services.HtmlHookService;
-import com.onyshchenko.psanalyzer.services.SearchUtils.GameSpecification;
+import com.onyshchenko.psanalyzer.services.searchutils.GameSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +50,8 @@ public class GameController implements GameControllerIntf {
         if (filter != null) {
             Specification<Game> spec = FilteringUtils.getSpecificationFromFilter(filter);
 
-            if (((GameSpecification) spec).criteria.getKey().equals(RequestFilters.USERID)) {
-                String sp = String.valueOf(((GameSpecification) spec).criteria.getValue());
+            if (((GameSpecification) spec).getCriteria().getKey().equals(RequestFilters.USERID)) {
+                String sp = String.valueOf(((GameSpecification) spec).getCriteria().getValue());
                 long userId = Long.parseLong(sp);
 
                 return gameService.prepareWishList(PageRequest.of(page, size), userId);

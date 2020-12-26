@@ -1,4 +1,4 @@
-package com.onyshchenko.psanalyzer.services.SearchUtils;
+package com.onyshchenko.psanalyzer.services.searchutils;
 
 import com.onyshchenko.psanalyzer.model.RequestFilters;
 

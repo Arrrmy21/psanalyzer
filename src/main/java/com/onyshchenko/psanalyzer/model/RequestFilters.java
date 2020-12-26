@@ -4,6 +4,7 @@ public enum RequestFilters {
 
     PRICE("price"),
     NAME("searchName"),
+    PUBLISHER("searchPublisher"),
     USERID("userId");
 
     RequestFilters(String filter) {

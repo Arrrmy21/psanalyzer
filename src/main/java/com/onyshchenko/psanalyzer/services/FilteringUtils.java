@@ -2,7 +2,7 @@ package com.onyshchenko.psanalyzer.services;
 
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.RequestFilters;
-import com.onyshchenko.psanalyzer.services.SearchUtils.GameSpecificationBuilder;
+import com.onyshchenko.psanalyzer.services.searchutils.GameSpecificationBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +34,8 @@ public class FilteringUtils {
                 return RequestFilters.PRICE;
             case "userId":
                 return RequestFilters.USERID;
+            case "publisher":
+                return RequestFilters.PUBLISHER;
             default:
                 throw new ValidationException("Filter parameter {" + key + "} is not valid.");
         }

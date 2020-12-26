@@ -64,6 +64,9 @@ public class Game {
     @Column(name = "game_publisher")
     private String publisher;
 
+    @Column(name = "game_search_publisher")
+    private String searchPublisher;
+
     public Game() {
     }
 
@@ -157,6 +160,14 @@ public class Game {
 
     public void setPublisher(String publisher) {
         this.publisher = publisher;
+    }
+
+    public String getSearchPublisher() {
+        return searchPublisher;
+    }
+
+    public void setSearchPublisher(String searchPublisher) {
+        this.searchPublisher = searchPublisher;
     }
 
     public Boolean isErrorWhenFilling() {

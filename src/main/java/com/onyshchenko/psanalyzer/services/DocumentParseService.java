@@ -41,6 +41,7 @@ public class DocumentParseService {
             String publisher = extractPublisherFromGmeElement(element);
             if (publisher != null && !publisher.isEmpty()) {
                 gameForUpdating.setPublisher(publisher);
+                gameForUpdating.setSearchPublisher(publisher.toLowerCase());
             } else {
                 exceptionCaptured = true;
                 LOGGER.debug("Publisher for game is empty.");

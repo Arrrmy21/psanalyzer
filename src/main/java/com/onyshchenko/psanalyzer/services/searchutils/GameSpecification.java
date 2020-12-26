@@ -1,4 +1,4 @@
-package com.onyshchenko.psanalyzer.services.SearchUtils;
+package com.onyshchenko.psanalyzer.services.searchutils;
 
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.Price;
@@ -12,7 +12,9 @@ import javax.persistence.criteria.Root;
 
 public class GameSpecification implements Specification<Game> {
 
-    public SearchCriteria criteria;
+    public static final String CURRENT_PRICE = "currentPrice";
+
+    private SearchCriteria criteria;
 
     public GameSpecification(SearchCriteria criteria) {
         this.criteria = criteria;
@@ -26,12 +28,12 @@ public class GameSpecification implements Specification<Game> {
         switch (criteria.getKey()) {
             case PRICE:
                 if (criteria.getOperation().equalsIgnoreCase("=")) {
-                    return criteriaBuilder.equal(priceJoin.get("currentPrice"), criteria.getValue());
+                    return criteriaBuilder.equal(priceJoin.get(CURRENT_PRICE), criteria.getValue());
                 } else if (criteria.getOperation().equalsIgnoreCase(">")) {
-                    return criteriaBuilder.greaterThan(priceJoin.get("currentPrice"), criteria.getValue().toString());
+                    return criteriaBuilder.greaterThan(priceJoin.get(CURRENT_PRICE), criteria.getValue().toString());
                 } else if (criteria.getOperation().equalsIgnoreCase("<")) {
                     return criteriaBuilder.lessThan(
-                            priceJoin.get("currentPrice"), criteria.getValue().toString());
+                            priceJoin.get(CURRENT_PRICE), criteria.getValue().toString());
                 }
                 break;
             case NAME:
@@ -40,9 +42,18 @@ public class GameSpecification implements Specification<Game> {
                             root.get(criteria.getKey().getFilterName()), "%" + criteria.getValue().toString().toLowerCase() + "%");
                 }
                 break;
+            case PUBLISHER:
+                if (criteria.getOperation().equalsIgnoreCase("=")) {
+                    return criteriaBuilder.like(
+                            root.get(criteria.getKey().getFilterName()), "%" + criteria.getValue().toString().toLowerCase() + "%");
+                }
             default:
                 return null;
         }
         return null;
+    }
+
+    public SearchCriteria getCriteria() {
+        return criteria;
     }
 }

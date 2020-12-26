@@ -38,13 +38,13 @@ public class HtmlHookService {
     @Value("${bot.token}")
     private String botToken;
 
-    //    @Scheduled(fixedDelay = 6000000)
-    @Scheduled(cron = "0 0 5 * * *", zone = "GMT+2:00")
+        @Scheduled(fixedDelay = 6000000)
+//    @Scheduled(cron = "0 0 5 * * *", zone = "GMT+2:00")
     public void collectMinimalDataAboutGamesScheduledTask() throws IOException {
 
         LocalDateTime startingTime = LocalDateTime.now();
         LOGGER.info("Process of getting games data from url STARTED.");
-        for (int page = 1; page < 74; page++) {
+        for (int page = 1; page < 2; page++) {
             LOGGER.info("Get all prices form page: [{}].", page);
             Document document = getDataFromUrlWithJsoup(ALL_GAMES_URL + page);
 //            Document document = getDataFromUrlWithJsoup(SALES + page);
@@ -60,7 +60,7 @@ public class HtmlHookService {
     }
 
     //    @Scheduled(fixedDelay = 6000000)
-    @Scheduled(cron = "0 0 20 * * *", zone = "GMT+2:00")
+//    @Scheduled(cron = "0 0 20 * * *", zone = "GMT+2:00")
     public void checkUsersWishListAndSendNotifications() {
 
         List<Long> userIds = userService.getAllUsersWithDiscountOnGameInWishlist();
