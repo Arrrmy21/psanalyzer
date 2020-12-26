@@ -38,6 +38,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "user_status")
     private Status status;
+    @Column(name = "notification")
+    private boolean notification = true;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "users_wishList", joinColumns = @JoinColumn(name = "user_id"))
@@ -116,5 +118,13 @@ public class User {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public boolean isNotification() {
+        return notification;
+    }
+
+    public void setNotification(boolean notification) {
+        this.notification = notification;
     }
 }

@@ -61,4 +61,13 @@ public interface UserControllerIntf {
     @PostMapping("/notifyAll")
     @Consumes(MediaType.APPLICATION_JSON)
     ResponseEntity<Object> notifyAllUsersProcedureStart();
+
+    @PostMapping("/{userId}/notifications/on")
+    ResponseEntity<Object> turnOnNotifications(@PathVariable("userId") long userId);
+
+    @PostMapping("/{userId}/notifications/off")
+    ResponseEntity<Object> turnOffNotifications(@PathVariable("userId") long userId);
+
+    @GetMapping("/{userId}/notifications")
+    ResponseEntity<Object> getUserNotifications(@PathVariable("userId") long userId);
 }

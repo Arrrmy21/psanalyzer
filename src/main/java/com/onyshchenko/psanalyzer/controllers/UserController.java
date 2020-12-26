@@ -116,4 +116,41 @@ public class UserController implements UserControllerIntf {
         htmlHookService.checkUsersWishListAndSendNotifications();
         return new ResponseEntity<>("Users notified.", HttpStatus.OK);
     }
+
+    @Override
+    public ResponseEntity<Object> turnOnNotifications(long userId) {
+        Optional<User> user = userService.findById(userId);
+        if (user.isPresent()) {
+            LOGGER.info("Turning OFF notifications for user [{}].", user.get().getUsername());
+            user.get().setNotification(true);
+            userRepository.save(user.get());
+            return new ResponseEntity<>("User notification = true.", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("User not found.", HttpStatus.OK);
+        }
+    }
+
+    @Override
+    public ResponseEntity<Object> turnOffNotifications(long userId) {
+        Optional<User> user = userService.findById(userId);
+        if (user.isPresent()) {
+            LOGGER.info("Turning ON notifications for user [{}].", user.get().getUsername());
+            user.get().setNotification(false);
+            userRepository.save(user.get());
+            return new ResponseEntity<>("User notification = false.", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("User not found.", HttpStatus.OK);
+        }
+    }
+
+    @Override
+    public ResponseEntity<Object> getUserNotifications(long userId) {
+        Optional<User> user = userService.findById(userId);
+        if (user.isPresent()) {
+            boolean userNotification = user.get().isNotification();
+            return new ResponseEntity<>("User notification = [" + userNotification + "].", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("User not found.", HttpStatus.OK);
+        }
+    }
 }

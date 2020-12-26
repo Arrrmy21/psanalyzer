@@ -37,17 +37,17 @@ public class HtmlHookService {
             + " /wishlist";
     @Value("${bot.token}")
     private String botToken;
+    private int totalPages = 5;
 
-        @Scheduled(fixedDelay = 6000000)
-//    @Scheduled(cron = "0 0 5 * * *", zone = "GMT+2:00")
+    //    @Scheduled(fixedDelay = 6000000)
+    @Scheduled(cron = "0 0 5 * * *", zone = "GMT+2:00")
     public void collectMinimalDataAboutGamesScheduledTask() throws IOException {
 
         LocalDateTime startingTime = LocalDateTime.now();
         LOGGER.info("Process of getting games data from url STARTED.");
-        for (int page = 1; page < 2; page++) {
+        for (int page = 1; page < totalPages; page++) {
             LOGGER.info("Get all prices form page: [{}].", page);
             Document document = getDataFromUrlWithJsoup(ALL_GAMES_URL + page);
-//            Document document = getDataFromUrlWithJsoup(SALES + page);
             List<Game> games = documentParseService.getInitialInfoAboutGamesFromDocument(document);
             gameService.checkCollectedListOfGamesToExisted(games);
         }
@@ -60,7 +60,7 @@ public class HtmlHookService {
     }
 
     //    @Scheduled(fixedDelay = 6000000)
-//    @Scheduled(cron = "0 0 20 * * *", zone = "GMT+2:00")
+    @Scheduled(cron = "0 0 20 * * *", zone = "GMT+2:00")
     public void checkUsersWishListAndSendNotifications() {
 
         List<Long> userIds = userService.getAllUsersWithDiscountOnGameInWishlist();
@@ -69,7 +69,7 @@ public class HtmlHookService {
 
             Optional<User> user = userService.findById(userId);
 
-            if (user.isPresent() && user.get().getChatId() != null) {
+            if (user.isPresent() && user.get().getChatId() != null && user.get().isNotification()) {
                 String chatId = user.get().getChatId();
 
                 LOGGER.info("Sending message to user [{}].", user.get().getUsername());
