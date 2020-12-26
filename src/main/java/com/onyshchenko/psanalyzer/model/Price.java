@@ -24,6 +24,8 @@ public class Price {
     @NotNull
     @Column(name = "currentPrice")
     private int currentPrice;
+    @Column(name = "previousPrice")
+    private int previousPrice;
     @Column(name = "highestPrice")
     private int highestPrice;
     @Column(name = "highestPriceDate")
@@ -42,9 +44,12 @@ public class Price {
     private int highestPercentageDiscount;
     @Enumerated(EnumType.STRING)
     private Currency currency;
+    @Column(name = "price_changed")
+    private boolean priceChanged = false;
 
     public Price() {
         this.currentPrice = 0;
+        this.previousPrice = 0;
         this.highestPrice = 0;
         this.highestPriceDate = LocalDate.now();
         this.lowestPriceDate = LocalDate.now();
@@ -61,6 +66,20 @@ public class Price {
         this.lowestPrice = currentPrice;
         this.currency = currency;
         this.highestPrice = currentPrice;
+        this.previousPrice = currentPrice;
+    }
+
+    public Price(@NotNull int currentPrice, int previousPrice, Currency currency) {
+        this();
+        this.currentPrice = currentPrice;
+        this.previousPrice = previousPrice;
+        this.highestPrice = previousPrice;
+        this.lowestPrice = currentPrice;
+        this.currentDiscount = previousPrice - currentPrice;
+        this.highestDiscount = currentDiscount;
+        this.currentPercentageDiscount = evaluatePercentageDiscount(previousPrice, currentPrice);
+        this.highestPercentageDiscount = currentPercentageDiscount;
+        this.currency = currency;
     }
 
     public String getId() {
@@ -93,6 +112,14 @@ public class Price {
 
     public void setCurrentPrice(int currentPrice) {
         this.currentPrice = currentPrice;
+    }
+
+    public int getPreviousPrice() {
+        return previousPrice;
+    }
+
+    public void setPreviousPrice(int previousPrice) {
+        this.previousPrice = previousPrice;
     }
 
     public int getHighestPrice() {
@@ -151,7 +178,19 @@ public class Price {
         this.currency = currency;
     }
 
-    public boolean hasDiscount(){
+    public boolean hasDiscount() {
         return currentDiscount != 0;
+    }
+
+    private int evaluatePercentageDiscount(int oldPrice, int newPrice) {
+        return (100 - newPrice * 100 / oldPrice);
+    }
+
+    public boolean isPriceChanged() {
+        return priceChanged;
+    }
+
+    public void setPriceChanged(boolean priceChanged) {
+        this.priceChanged = priceChanged;
     }
 }

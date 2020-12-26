@@ -33,7 +33,6 @@ public enum Genre {
     ADULT("Для взрослых"),
     UNIQUE("Уникальные");
 
-
     private static Map<String, Genre> map = new HashMap<>(values().length, 1);
 
     static {

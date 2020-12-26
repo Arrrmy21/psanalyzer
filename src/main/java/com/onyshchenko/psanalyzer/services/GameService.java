@@ -36,7 +36,7 @@ public class GameService {
         return gameRepository.findById(id);
     }
 
-    public void checkList(List<Game> games) {
+    public void checkCollectedListOfGamesToExisted(List<Game> games) {
 
         LOGGER.info("Checking list of games.");
 

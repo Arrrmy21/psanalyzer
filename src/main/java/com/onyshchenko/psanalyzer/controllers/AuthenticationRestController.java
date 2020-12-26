@@ -30,7 +30,7 @@ public class AuthenticationRestController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationRestController.class);
 
     @Value("${default.user.password}")
-    private static final String DEFAULT_PASSWORD = "defaultPassword";
+    private String defaultPassword;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -45,7 +45,7 @@ public class AuthenticationRestController {
             LOGGER.info("Starting authentication of user [{}].", requestDto.getUsername());
             String username = requestDto.getUsername();
 
-            String password = DEFAULT_PASSWORD;
+            String password = defaultPassword;
             if (requestDto.getPassword() != null) {
                 password = requestDto.getPassword();
             }

@@ -12,47 +12,53 @@ public class PriceService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PriceService.class);
 
-    public void updatePriceComparingWithExisting(Price gameFromSite, Price gameFromDB) {
+    public void updatePriceComparingWithExisting(Price gameFromSite, Price gameToBeUpdatedOnDB) {
 
         int actualPrice = gameFromSite.getCurrentPrice();
+        int previousSitePrice = gameFromSite.getPreviousPrice();
 
-        int oldPrice = gameFromDB.getCurrentPrice();
-        int lowestPrice = gameFromDB.getLowestPrice();
-        int highestPrice = gameFromDB.getHighestPrice();
+        int gameDbOldPrice = gameToBeUpdatedOnDB.getCurrentPrice();
+        if (previousSitePrice != gameDbOldPrice) {
+            LOGGER.info("Base price of game changed");
+            gameToBeUpdatedOnDB.setPriceChanged(true);
+        }
 
+        int lowestPrice = gameToBeUpdatedOnDB.getLowestPrice();
+        int highestPrice = gameToBeUpdatedOnDB.getHighestPrice();
 
         if (actualPrice < lowestPrice) {
             LOGGER.info("Reached the lowest price.");
-            gameFromDB.setLowestPrice(actualPrice);
-            gameFromDB.setLowestPriceDate(LocalDate.now());
+            gameToBeUpdatedOnDB.setLowestPrice(actualPrice);
+            gameToBeUpdatedOnDB.setLowestPriceDate(LocalDate.now());
 
-            int currentDiscount = evaluateDiscount(oldPrice, actualPrice);
-            int currentPercentageDiscount = evaluatePercentageDiscount(oldPrice, actualPrice);
-            gameFromDB.setCurrentDiscount(currentDiscount);
-            gameFromDB.setCurrentPercentageDiscount(currentPercentageDiscount);
+            int currentDiscount = evaluateDiscount(previousSitePrice, actualPrice);
+            int currentPercentageDiscount = evaluatePercentageDiscount(previousSitePrice, actualPrice);
+            gameToBeUpdatedOnDB.setCurrentDiscount(currentDiscount);
+            gameToBeUpdatedOnDB.setCurrentPercentageDiscount(currentPercentageDiscount);
 
-            if (currentDiscount > gameFromDB.getHighestDiscount()) {
+            if (currentDiscount > gameToBeUpdatedOnDB.getHighestDiscount()) {
                 LOGGER.info("Reached the highest discount.");
-                gameFromDB.setHighestDiscount(currentDiscount);
-                gameFromDB.setHighestPercentageDiscount(currentPercentageDiscount);
+                gameToBeUpdatedOnDB.setHighestDiscount(currentDiscount);
+                gameToBeUpdatedOnDB.setHighestPercentageDiscount(currentPercentageDiscount);
             }
         } else if (actualPrice > highestPrice) {
             LOGGER.info("Reached the highest price. WTF?");
 
-            gameFromDB.setHighestPrice(actualPrice);
-            gameFromDB.setHighestPriceDate(LocalDate.now());
-            gameFromDB.setCurrentDiscount(0);
-            gameFromDB.setCurrentPercentageDiscount(0);
+            gameToBeUpdatedOnDB.setHighestPrice(actualPrice);
+            gameToBeUpdatedOnDB.setHighestPriceDate(LocalDate.now());
+            gameToBeUpdatedOnDB.setCurrentDiscount(0);
+            gameToBeUpdatedOnDB.setCurrentPercentageDiscount(0);
         }
 
-        gameFromDB.setCurrentPrice(actualPrice);
+        gameToBeUpdatedOnDB.setCurrentPrice(actualPrice);
+        gameToBeUpdatedOnDB.setPreviousPrice(previousSitePrice);
     }
 
-    private int evaluateDiscount(int oldPrice, int newPrice) {
+    public int evaluateDiscount(int oldPrice, int newPrice) {
         return oldPrice - newPrice;
     }
 
-    private int evaluatePercentageDiscount(int oldPrice, int newPrice) {
+    public int evaluatePercentageDiscount(int oldPrice, int newPrice) {
         return (100 - newPrice * 100 / oldPrice);
     }
 }

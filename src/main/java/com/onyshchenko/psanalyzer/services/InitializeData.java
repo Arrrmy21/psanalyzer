@@ -1,5 +1,7 @@
 package com.onyshchenko.psanalyzer.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -12,13 +14,18 @@ import javax.sql.DataSource;
 @Component
 public class InitializeData {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(InitializeData.class);
+
     @Autowired
     private DataSource dataSource;
 
     @EventListener(ApplicationReadyEvent.class)
-    public void loadDat() {
+    public void loadData() {
+
+        LOGGER.info("Loading predefined data to database.");
         ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator(false, false, "UTF-8",
                 new ClassPathResource("data.sql"));
         resourceDatabasePopulator.execute(dataSource);
+        LOGGER.info("Loading predefined data to database FINISHED.");
     }
 }

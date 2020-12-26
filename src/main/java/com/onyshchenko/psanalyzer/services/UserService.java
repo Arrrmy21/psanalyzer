@@ -24,7 +24,7 @@ public class UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
     @Value("${default.user.password}")
-    private static final String DEFAULT_PASSWORD = "defaultPassword";
+    private String defaultPassword;
 
     @Autowired
     private UserRepository userRepository;
@@ -62,7 +62,7 @@ public class UserService {
         if (user.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         } else {
-            user.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
+            user.setPassword(passwordEncoder.encode(defaultPassword));
         }
 
         User registeredUser = userRepository.save(user);

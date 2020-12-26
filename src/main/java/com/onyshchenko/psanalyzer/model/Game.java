@@ -34,7 +34,7 @@ public class Game {
     private String searchName;
 
     @NotNull
-    @Column(name = "game_url", unique =  true)
+    @Column(name = "game_url", unique = true)
     private String url;
 
     @Enumerated(EnumType.STRING)
