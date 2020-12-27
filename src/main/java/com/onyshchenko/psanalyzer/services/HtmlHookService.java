@@ -45,7 +45,7 @@ public class HtmlHookService {
 
         LocalDateTime startingTime = LocalDateTime.now();
         LOGGER.info("Process of getting games data from url STARTED.");
-        for (int page = 75; page < totalPages; page++) {
+        for (int page = 1; page < totalPages; page++) {
             LOGGER.info("Get all prices form page: [{}].", page);
             Document document = getDataFromUrlWithJsoup(ALL_GAMES_URL + page);
             List<Game> games = documentParseService.getInitialInfoAboutGamesFromDocument(document);
@@ -80,14 +80,19 @@ public class HtmlHookService {
 
     public Document getDataFromUrlWithJsoup(String url) throws IOException {
 
-        String address = BASE_URL + url;
-        LOGGER.info("Getting document from address: [{}]", address);
+        try {
+            String address = BASE_URL + url;
+            LOGGER.info("Getting document from address: [{}]", address);
 
-        Document doc = Jsoup.connect(address).get();
-        String docTitle = doc.title();
-        LOGGER.info("Document received from site with title {}", docTitle);
+            Document doc = Jsoup.connect(address).get();
+            String docTitle = doc.title();
+            LOGGER.info("Document received from site with title: [{}]", docTitle);
 
-        return doc;
+            return doc;
+        } catch (Exception ex) {
+            LOGGER.info("Error while getting Document.");
+            return null;
+        }
     }
 
     public void gettingDetailedInfoAboutGames() {
@@ -104,13 +109,18 @@ public class HtmlHookService {
             for (String url : urls) {
                 Document document = getDataFromUrlWithJsoup("product/" + url);
 
-                Game gameForUpdating = documentParseService.getDetailedGameInfoFromDocument(document);
+                if (document != null) {
+                    Game gameForUpdating = documentParseService.getDetailedGameInfoFromDocument(document);
 
-                String gameId = gameService.getGameIdByUrl(url);
-                gameService.updateGamePatch(gameForUpdating, gameId);
+                    String gameId = gameService.getGameIdByUrl(url);
+                    gameService.updateGamePatch(gameForUpdating, gameId);
+                } else {
+                    LOGGER.info("Error occurred while getting game by url [{}]. Skipping updating with detailed info", url);
+                }
+
             }
         } catch (Exception ex) {
-            LOGGER.info("Error while getting Document.");
+            LOGGER.info("Error while getting detailed info about games.");
         }
         LOGGER.info("Process of getting detailed info about games FINISHED.");
     }

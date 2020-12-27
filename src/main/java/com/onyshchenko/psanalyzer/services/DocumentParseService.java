@@ -33,6 +33,7 @@ public class DocumentParseService {
             .ofPattern("d/M/yyyy");
 
     public Game getDetailedGameInfoFromDocument(Document document) {
+        LOGGER.info("Parsing detailed game info from document.");
         Game gameForUpdating = new Game();
         boolean exceptionCaptured = false;
         try {
@@ -75,8 +76,7 @@ public class DocumentParseService {
             gameForUpdating.setDetailedInfoFilledIn(true);
         } catch (Exception e) {
             exceptionCaptured = true;
-            LOGGER.info("Exception while parsing data from html");
-            e.printStackTrace();
+            LOGGER.info("Exception while parsing data from html.");
         }
 
         gameForUpdating.setErrorWhenFilling(exceptionCaptured);
@@ -106,6 +106,10 @@ public class DocumentParseService {
                 }
 
                 String currentGamePriceString = json.getAsString("price");
+                if (currentGamePriceString.equalsIgnoreCase("Входит в подписку")) {
+                    //TODO: Add psplus & eagames subscriptions.
+                    currentGamePriceString = null;
+                }
                 if (currentGamePriceString == null || currentGamePriceString.equalsIgnoreCase("бесплатно")) {
                     currentPriceInt = 0;
                 } else {
