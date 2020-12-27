@@ -99,6 +99,12 @@ public class DocumentParseService {
                 int previousPriceInt = 0;
                 Currency currency = Currency.UAH;
 
+                Elements checkIfPriceClassExists = element.getElementsByClass("price__container");
+                if (checkIfPriceClassExists == null || checkIfPriceClassExists.isEmpty()) {
+                    LOGGER.info("Broken info about game collected. Game name: [{}], id: [{}]", gameName, gameSku);
+                    continue;
+                }
+
                 String currentGamePriceString = json.getAsString("price");
                 if (currentGamePriceString == null || currentGamePriceString.equalsIgnoreCase("бесплатно")) {
                     currentPriceInt = 0;
