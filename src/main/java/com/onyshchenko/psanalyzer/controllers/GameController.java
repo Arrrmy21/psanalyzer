@@ -90,12 +90,13 @@ public class GameController implements GameControllerIntf {
     }
 
     @Override
-    public ResponseEntity<Object> startUpdateGameProcedure() {
+    public void startUpdateGameProcedure() {
         try {
+            LOGGER.info("Starting collecting data via controller.");
             htmlHookService.collectMinimalDataAboutGamesScheduledTask();
+            LOGGER.info("Collecting data via controller FINISHED.");
         } catch (IOException e) {
             LOGGER.info("Error while updating games from controller.");
         }
-        return new ResponseEntity<>("Games updated.", HttpStatus.OK);
     }
 }

@@ -37,7 +37,7 @@ public class HtmlHookService {
             + " /wishlist";
     @Value("${bot.token}")
     private String botToken;
-    private int totalPages = 5;
+    private int totalPages = 76;
 
     //    @Scheduled(fixedDelay = 6000000)
     @Scheduled(cron = "0 0 5 * * *", zone = "GMT+2:00")
@@ -45,7 +45,7 @@ public class HtmlHookService {
 
         LocalDateTime startingTime = LocalDateTime.now();
         LOGGER.info("Process of getting games data from url STARTED.");
-        for (int page = 1; page < totalPages; page++) {
+        for (int page = 75; page < totalPages; page++) {
             LOGGER.info("Get all prices form page: [{}].", page);
             Document document = getDataFromUrlWithJsoup(ALL_GAMES_URL + page);
             List<Game> games = documentParseService.getInitialInfoAboutGamesFromDocument(document);

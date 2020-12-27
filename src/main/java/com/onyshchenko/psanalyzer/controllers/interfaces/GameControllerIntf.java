@@ -50,5 +50,5 @@ public interface GameControllerIntf {
     @PostMapping("/startUpdateProcedure")
     @PreAuthorize("hasRole('ADMIN')")
     @Consumes(MediaType.APPLICATION_JSON)
-    ResponseEntity<Object> startUpdateGameProcedure();
+    void startUpdateGameProcedure();
 }
