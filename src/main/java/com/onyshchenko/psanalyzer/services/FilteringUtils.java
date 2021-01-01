@@ -36,6 +36,8 @@ public class FilteringUtils {
                 return RequestFilters.USERID;
             case "publisher":
                 return RequestFilters.PUBLISHER;
+            case "released":
+                return RequestFilters.RELEASE;
             default:
                 throw new ValidationException("Filter parameter {" + key + "} is not valid.");
         }

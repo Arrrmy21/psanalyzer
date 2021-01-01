@@ -9,6 +9,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.time.LocalDate;
 
 public class GameSpecification implements Specification<Game> {
 
@@ -46,6 +47,13 @@ public class GameSpecification implements Specification<Game> {
                 if (criteria.getOperation().equalsIgnoreCase("=")) {
                     return criteriaBuilder.like(
                             root.get(criteria.getKey().getFilterName()), "%" + criteria.getValue().toString().toLowerCase() + "%");
+                }
+            case RELEASE:
+                if (criteria.getOperation().equalsIgnoreCase("=")) {
+                    if (criteria.getValue().toString().equalsIgnoreCase("no")) {
+                        return criteriaBuilder.greaterThan(
+                                root.get(criteria.getKey().getFilterName()).as(LocalDate.class), LocalDate.now());
+                    }
                 }
             default:
                 return null;
