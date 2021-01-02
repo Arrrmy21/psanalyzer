@@ -14,6 +14,7 @@ import java.time.LocalDate;
 public class GameSpecification implements Specification<Game> {
 
     public static final String CURRENT_PRICE = "currentPrice";
+    public static final String CURRENT_DISCOUNT = "currentDiscount";
 
     private SearchCriteria criteria;
 
@@ -38,16 +39,12 @@ public class GameSpecification implements Specification<Game> {
                 }
                 break;
             case NAME:
-                if (criteria.getOperation().equalsIgnoreCase("=")) {
-                    return criteriaBuilder.like(
-                            root.get(criteria.getKey().getFilterName()), "%" + criteria.getValue().toString().toLowerCase() + "%");
-                }
-                break;
             case PUBLISHER:
                 if (criteria.getOperation().equalsIgnoreCase("=")) {
                     return criteriaBuilder.like(
                             root.get(criteria.getKey().getFilterName()), "%" + criteria.getValue().toString().toLowerCase() + "%");
                 }
+                break;
             case RELEASE:
                 if (criteria.getOperation().equalsIgnoreCase("=")) {
                     if (criteria.getValue().toString().equalsIgnoreCase("no")) {
@@ -55,6 +52,12 @@ public class GameSpecification implements Specification<Game> {
                                 root.get(criteria.getKey().getFilterName()).as(LocalDate.class), LocalDate.now());
                     }
                 }
+                break;
+            case DISCOUNT:
+                if (criteria.getOperation().equalsIgnoreCase(">")) {
+                    return criteriaBuilder.greaterThan(priceJoin.get(CURRENT_DISCOUNT), criteria.getValue().toString());
+                }
+                break;
             default:
                 return null;
         }
