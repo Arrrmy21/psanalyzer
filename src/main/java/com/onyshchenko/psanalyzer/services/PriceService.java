@@ -55,10 +55,14 @@ public class PriceService {
     }
 
     public int evaluateDiscount(int oldPrice, int newPrice) {
-        return oldPrice - newPrice;
+        int newDiscount = oldPrice - newPrice;
+        return Math.max(newDiscount, 0);
     }
 
     public int evaluatePercentageDiscount(int oldPrice, int newPrice) {
+        if (oldPrice == 0) {
+            return 0;
+        }
         return (100 - newPrice * 100 / oldPrice);
     }
 }

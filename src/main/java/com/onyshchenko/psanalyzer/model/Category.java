@@ -15,7 +15,9 @@ public enum Category {
     THEME("Тема"),
     DYNTHEME("Динамическая тема"),
     GAME("Игра"),
-    AVATAR("Аватар");
+    AVATAR("Аватар"),
+    DEFAULT("Default"),
+    EXCLUSIVE("Exclusive");
 
     private static Map<String, Category> map = new HashMap<>(values().length, 1);
 

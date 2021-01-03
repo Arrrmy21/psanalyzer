@@ -1,5 +1,6 @@
 package com.onyshchenko.psanalyzer.services;
 
+import com.onyshchenko.psanalyzer.model.Category;
 import com.onyshchenko.psanalyzer.model.Currency;
 import com.onyshchenko.psanalyzer.model.DeviceType;
 import com.onyshchenko.psanalyzer.model.Game;
@@ -83,7 +84,7 @@ public class DocumentParseService {
         return gameForUpdating;
     }
 
-    public List<Game> getInitialInfoAboutGamesFromDocument(Document doc) {
+    public List<Game> getInitialInfoAboutGamesFromDocument(Document doc, Category category) {
 
         Elements headline = doc.getElementsByClass(
                 "ems-sdk-product-tile-link");
@@ -142,6 +143,7 @@ public class DocumentParseService {
                 }
 
                 Game createdGame = new Game(gameName, price, gameSku);
+                createdGame.setCategory(category);
                 games.add(createdGame);
             } catch (ParseException e) {
                 LOGGER.info("Parsing error.");

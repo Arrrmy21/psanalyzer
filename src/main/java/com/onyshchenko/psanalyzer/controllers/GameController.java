@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.xml.bind.ValidationException;
-import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -91,12 +90,8 @@ public class GameController implements GameControllerIntf {
 
     @Override
     public void startUpdateGameProcedure() {
-        try {
-            LOGGER.info("Starting collecting data via controller.");
-            htmlHookService.collectMinimalDataAboutGamesScheduledTask();
-            LOGGER.info("Collecting data via controller FINISHED.");
-        } catch (IOException e) {
-            LOGGER.info("Error while updating games from controller.");
-        }
+        LOGGER.info("Starting collecting data via controller.");
+        htmlHookService.collectMinimalDataAboutGamesScheduledTask();
+        LOGGER.info("Collecting data via controller FINISHED.");
     }
 }
