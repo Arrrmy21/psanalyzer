@@ -48,7 +48,7 @@ public class HtmlHookService {
         LocalDateTime startingTime = LocalDateTime.now();
         LOGGER.info("Process of getting games data from url STARTED.");
 
-        collectDataFromCategoryExclusive(UrlCategory.EXCLUSIVE);
+//        collectDataFromCategoryExclusive(UrlCategory.EXCLUSIVE);
         collectDataFromCategory(UrlCategory.ALL_GAMES);
         collectDataFromCategory(UrlCategory.SALES);
         collectDataFromCategory(UrlCategory.VR);
