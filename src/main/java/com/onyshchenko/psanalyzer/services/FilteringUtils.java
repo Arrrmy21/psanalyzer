@@ -38,7 +38,7 @@ public class FilteringUtils {
                 return RequestFilters.PUBLISHER;
             case "released":
                 return RequestFilters.RELEASE;
-            case "discount":
+            case "disc":
                 return RequestFilters.DISCOUNT;
             default:
                 throw new ValidationException("Filter parameter {" + key + "} is not valid.");
