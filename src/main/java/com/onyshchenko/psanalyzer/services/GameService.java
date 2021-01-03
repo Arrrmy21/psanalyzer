@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -50,14 +51,18 @@ public class GameService {
             Optional<Game> gameFromDb = findGameIfAlreadyExists(game.getId());
             if (!gameFromDb.isPresent()) {
                 LOGGER.info("Creating game record.");
-                gameRepository.save(game);
+                try {
+                    gameRepository.save(game);
+                    gameRepository.saveHistory(game.getId(), game.getPrice().getCurrentPrice(), LocalDate.now());
+                } catch (Exception ex) {
+                    LOGGER.info("Exception occurred while saving game [{}].", game.getId());
+                }
             } else {
                 if (game.getPrice().getCurrentPrice() != gameFromDb.get().getPrice().getCurrentPrice()) {
-                    LOGGER.info("Checking game price.");
-
+                    LOGGER.info("Game price changed. Collecting and comparing data.");
                     try {
+                        gameRepository.saveHistory(game.getId(), game.getPrice().getCurrentPrice(), LocalDate.now());
                         priceService.updatePriceComparingWithExisting(game.getPrice(), gameFromDb.get().getPrice());
-
                     } catch (Exception e) {
                         LOGGER.error("Exception during updating price.");
                     }
