@@ -53,9 +53,9 @@ public class HtmlHookService {
         collectDataFromCategory(UrlCategory.SALES);
         collectDataFromCategory(UrlCategory.VR);
         collectDataFromCategory(UrlCategory.PS5);
+        LOGGER.info("Process of getting games data from url FINISHED.");
 
         gettingDetailedInfoAboutGames();
-        LOGGER.info("Process of getting games data from url FINISHED.");
         LocalDateTime finishingTime = LocalDateTime.now();
 
         LOGGER.info("Collecting data about games finished in [{}] minutes", Duration.between(startingTime, finishingTime).toMinutes());

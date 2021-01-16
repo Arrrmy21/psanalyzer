@@ -87,8 +87,27 @@ class PriceServiceTest {
 
     }
 
+    @Test
+    void verifyDiscountIsNullAfterSaleIsOver() {
+
+        Price priceFromDb = getPriceFromDbWithDiscount();
+        Price newPriceFromSite = getNewPriceFromSiteWithoutDiscount();
+
+        priceService.updatePriceComparingWithExisting(newPriceFromSite, priceFromDb);
+
+        assertEquals(PREVIOUS_SITE_PRICE, priceFromDb.getCurrentPrice());
+        assertEquals(PREVIOUS_SITE_PRICE, priceFromDb.getPreviousPrice());
+        assertEquals(0, priceFromDb.getCurrentDiscount());
+        assertEquals(0, priceFromDb.getCurrentPercentageDiscount());
+        assertEquals(120, priceFromDb.getLowestPrice());
+    }
+
     private Price getNewPriceFromSite() {
         return new Price(CURRENT_SITE_PRICE, PREVIOUS_SITE_PRICE, Currency.UAH);
+    }
+
+    private Price getNewPriceFromSiteWithoutDiscount() {
+        return new Price(PREVIOUS_SITE_PRICE, Currency.UAH);
     }
 
     private Price getPriceFromDb() {
@@ -96,9 +115,8 @@ class PriceServiceTest {
     }
 
     private Price getPriceFromDbWithDiscount() {
-        Price price = new Price(120, CURRENT_DB_PRICE, Currency.UAH);
 
-        return price;
+        return new Price(120, CURRENT_DB_PRICE, Currency.UAH);
     }
 
 }

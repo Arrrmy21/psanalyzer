@@ -17,7 +17,7 @@ public class PriceService {
         int actualPrice = gameFromSite.getCurrentPrice();
         int previousSitePrice = gameFromSite.getPreviousPrice();
 
-        int gameDbOldPrice = gameToBeUpdatedOnDB.getCurrentPrice();
+        int gameDbOldPrice = gameToBeUpdatedOnDB.getPreviousPrice();
         if (previousSitePrice != gameDbOldPrice) {
             LOGGER.info("Base price of game changed");
             gameToBeUpdatedOnDB.setPriceChanged(true);
@@ -51,6 +51,10 @@ public class PriceService {
         }
 
         gameToBeUpdatedOnDB.setCurrentPrice(actualPrice);
+        if (actualPrice == previousSitePrice) {
+            gameToBeUpdatedOnDB.setCurrentDiscount(0);
+            gameToBeUpdatedOnDB.setCurrentPercentageDiscount(0);
+        }
         gameToBeUpdatedOnDB.setPreviousPrice(previousSitePrice);
     }
 
