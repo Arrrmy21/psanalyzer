@@ -23,6 +23,7 @@ public class UserController implements UserControllerIntf {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
     private static final String USER_NOT_FOUND = "User not found id: ";
+    private static final String USER_NOT_FOUND_EXCEPTION = "User not found.";
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -67,9 +68,9 @@ public class UserController implements UserControllerIntf {
 
     @Override
     public ResponseEntity<Object> updateUser(User userDetails) {
-        userRepository.findById(userDetails.getUserId()).orElseThrow(
-                () -> new IllegalArgumentException(USER_NOT_FOUND + userDetails.getUserId()));
-
+        if (!userRepository.findById(userDetails.getUserId()).isPresent()) {
+            return new ResponseEntity<>("User doesn't exist.", HttpStatus.BAD_REQUEST);
+        }
         userRepository.save(userDetails);
         return new ResponseEntity<>("User updated.", HttpStatus.OK);
     }
@@ -97,7 +98,7 @@ public class UserController implements UserControllerIntf {
             user.getWishList().remove(gameId);
             userRepository.save(user);
             LOGGER.info("Game id: [{}] removed from wishlist of user [{}].", gameId, userId);
-            return new ResponseEntity<>("Game : [" + game.get().getName() + "] removed from  wish list.", HttpStatus.OK);
+            return new ResponseEntity<>("Game : [" + game.get().getName() + "] removed from wish list.", HttpStatus.OK);
         }
         return new ResponseEntity<>("Game with id: " + gameId + " doesn't exist.", HttpStatus.BAD_REQUEST);
     }
@@ -124,9 +125,9 @@ public class UserController implements UserControllerIntf {
             LOGGER.info("Turning OFF notifications for user [{}].", user.get().getUsername());
             user.get().setNotification(true);
             userRepository.save(user.get());
-            return new ResponseEntity<>("User notification = true.", HttpStatus.OK);
+            return new ResponseEntity<>("User notification = [true].", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("User not found.", HttpStatus.OK);
+            return new ResponseEntity<>(USER_NOT_FOUND_EXCEPTION, HttpStatus.OK);
         }
     }
 
@@ -137,9 +138,9 @@ public class UserController implements UserControllerIntf {
             LOGGER.info("Turning ON notifications for user [{}].", user.get().getUsername());
             user.get().setNotification(false);
             userRepository.save(user.get());
-            return new ResponseEntity<>("User notification = false.", HttpStatus.OK);
+            return new ResponseEntity<>("User notification = [false].", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("User not found.", HttpStatus.OK);
+            return new ResponseEntity<>(USER_NOT_FOUND_EXCEPTION, HttpStatus.OK);
         }
     }
 
@@ -150,7 +151,7 @@ public class UserController implements UserControllerIntf {
             boolean userNotification = user.get().isNotification();
             return new ResponseEntity<>("User notification = [" + userNotification + "].", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("User not found.", HttpStatus.OK);
+            return new ResponseEntity<>(USER_NOT_FOUND_EXCEPTION, HttpStatus.OK);
         }
     }
 }
