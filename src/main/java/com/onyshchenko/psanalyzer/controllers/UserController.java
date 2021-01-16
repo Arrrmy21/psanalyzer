@@ -109,7 +109,7 @@ public class UserController implements UserControllerIntf {
                 () -> new IllegalArgumentException(USER_NOT_FOUND + userId));
         user.getWishList().clear();
         userRepository.save(user);
-        return new ResponseEntity<>("Wish list cleaned up.", HttpStatus.OK);
+        return new ResponseEntity<>("All games have been removed from wish list.", HttpStatus.OK);
     }
 
     @Override
