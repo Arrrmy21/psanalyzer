@@ -22,10 +22,15 @@ import java.util.Optional;
 @RequestMapping("/games")
 public interface GameControllerIntf {
 
-    @GetMapping("/{id}")
+    @GetMapping("/{gameId}")
     @PreAuthorize("hasRole('USER')")
     @Produces(MediaType.APPLICATION_JSON)
-    Optional<Game> getGame(String id);
+    Optional<Game> getGame(String gameId);
+
+    @GetMapping("/{gameId}/{userId}")
+    @PreAuthorize("hasRole('USER')")
+    @Produces(MediaType.APPLICATION_JSON)
+    Optional<Game> getPersonalizedGame(@PathVariable String gameId, @PathVariable long userId);
 
     @GetMapping
     @PreAuthorize("hasRole('USER')")
@@ -33,6 +38,14 @@ public interface GameControllerIntf {
     Page<Game> getGames(@RequestParam(required = false, defaultValue = "0") int page,
                         @RequestParam(required = false, defaultValue = "10") int size,
                         @RequestParam(required = false, name = "filter") String filter) throws ValidationException;
+
+    @GetMapping("/personal/{userId}")
+    @PreAuthorize("hasRole('USER')")
+    @Produces(MediaType.APPLICATION_JSON)
+    Page<Game> getPersonalizedGames(@RequestParam(required = false, defaultValue = "0") int page,
+                                    @RequestParam(required = false, defaultValue = "10") int size,
+                                    @RequestParam(required = false, name = "filter") String filter,
+                                    @PathVariable long userId) throws ValidationException;
 
     @PostMapping()
     @PreAuthorize("hasRole('ADMIN')")

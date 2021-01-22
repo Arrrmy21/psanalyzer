@@ -7,12 +7,14 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.OneToOne;
 import javax.persistence.JoinColumn;
 import javax.persistence.CascadeType;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -66,6 +68,11 @@ public class Game {
 
     @Column(name = "game_search_publisher")
     private String searchPublisher;
+
+    @ManyToMany(mappedBy = "wishList")
+    private Collection<User> users;
+
+    private Boolean isInWl;
 
     public Game() {
     }
@@ -176,6 +183,14 @@ public class Game {
 
     public void setErrorWhenFilling(Boolean errorWhenFilling) {
         this.errorWhenFilling = errorWhenFilling;
+    }
+
+    public Boolean getInWl() {
+        return isInWl;
+    }
+
+    public void setInWl(Boolean inWl) {
+        isInWl = inWl;
     }
 
     @Override

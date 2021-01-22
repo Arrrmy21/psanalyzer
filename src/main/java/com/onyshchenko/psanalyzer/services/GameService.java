@@ -3,8 +3,10 @@ package com.onyshchenko.psanalyzer.services;
 import com.onyshchenko.psanalyzer.dao.GameRepository;
 import com.onyshchenko.psanalyzer.dao.UserRepository;
 import com.onyshchenko.psanalyzer.model.Game;
+import com.onyshchenko.psanalyzer.model.RequestFilters;
 import com.onyshchenko.psanalyzer.model.User;
 import com.onyshchenko.psanalyzer.services.mapper.GameMapper;
+import com.onyshchenko.psanalyzer.services.searchutils.GameSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +14,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.ValidationException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class GameService {
@@ -73,6 +79,38 @@ public class GameService {
         }
     }
 
+    public Page<Game> getListOfGames(PageRequest pageRequest, String filter) throws ValidationException {
+
+        if (filter != null) {
+            Specification<Game> spec = FilteringUtils.getSpecificationFromFilter(filter);
+
+            if (((GameSpecification) spec).getCriteria().getKey().equals(RequestFilters.USERID)) {
+                String sp = String.valueOf(((GameSpecification) spec).getCriteria().getValue());
+                long userId = Long.parseLong(sp);
+
+                return prepareWishList(pageRequest, userId);
+            }
+            return gameRepository.findAll(spec, pageRequest);
+        }
+        return gameRepository.findAll(pageRequest);
+    }
+
+    public Page<Game> getPersonalizedListOfGames(PageRequest pageRequest, String filter, long userId)
+            throws ValidationException {
+        Page<Game> listOfGames = getListOfGames(pageRequest, filter);
+
+        Optional<User> user = userRepository.findById(userId);
+        Set<String> usersWishList = new HashSet<>();
+        if (user.isPresent()) {
+            usersWishList = user.get().getWishList();
+        }
+        for (String gameId : usersWishList) {
+            listOfGames.get().filter(game -> game.getId().equals(gameId)).forEach(g -> g.setInWl(true));
+        }
+
+        return listOfGames;
+    }
+
     public Page<Game> prepareWishList(Pageable pageable, long userId) {
 
         Optional<User> user = userRepository.findById(userId);
@@ -122,5 +160,31 @@ public class GameService {
 
     public String getGameIdByUrl(String url) {
         return gameRepository.getGameIdByUrl(url);
+    }
+
+    public Optional<Game> getGame(String gameId) {
+        return gameRepository.findById(gameId);
+    }
+
+    public Optional<Game> getPersonalizedGame(String gameId, long userId) {
+        Optional<Game> game = gameRepository.findById(gameId);
+
+        if (!game.isPresent()) {
+            return game;
+        }
+        Optional<User> user = userRepository.findById(userId);
+
+        Set<String> usersWishList = new HashSet<>();
+        if (user.isPresent()) {
+            usersWishList = user.get().getWishList();
+        }
+        for (String id : usersWishList) {
+            if (id.equals(game.get().getId())) {
+                game.get().setInWl(true);
+                break;
+            }
+        }
+
+        return game;
     }
 }
