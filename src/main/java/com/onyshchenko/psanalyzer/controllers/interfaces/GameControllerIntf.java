@@ -25,12 +25,12 @@ public interface GameControllerIntf {
     @GetMapping("/{gameId}")
     @PreAuthorize("hasRole('USER')")
     @Produces(MediaType.APPLICATION_JSON)
-    Optional<Game> getGame(String gameId);
+    Optional<Game> getGame(long gameId);
 
     @GetMapping("/{gameId}/{userId}")
     @PreAuthorize("hasRole('USER')")
     @Produces(MediaType.APPLICATION_JSON)
-    Optional<Game> getPersonalizedGame(@PathVariable String gameId, @PathVariable long userId);
+    Optional<Game> getPersonalizedGame(@PathVariable long gameId, @PathVariable long userId);
 
     @GetMapping
     @PreAuthorize("hasRole('USER')")
@@ -58,7 +58,7 @@ public interface GameControllerIntf {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<Object> deleteGame(@PathVariable String id);
+    ResponseEntity<Object> deleteGame(@PathVariable long id);
 
     @PostMapping("/startUpdateProcedure")
     @PreAuthorize("hasRole('ADMIN')")

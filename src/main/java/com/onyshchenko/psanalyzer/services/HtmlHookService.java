@@ -156,7 +156,7 @@ public class HtmlHookService {
                 if (document != null) {
                     Game gameForUpdating = documentParseService.getDetailedGameInfoFromDocument(document);
 
-                    String gameId = gameService.getGameIdByUrl(url);
+                    long gameId = gameService.getGameIdByUrl(url);
                     gameService.updateGamePatch(gameForUpdating, gameId);
                 } else {
                     LOGGER.info("Error occurred while getting game by url [{}]. Skipping updating with detailed info", url);

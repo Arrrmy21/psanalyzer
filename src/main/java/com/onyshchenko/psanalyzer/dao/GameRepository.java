@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface GameRepository extends JpaRepository<Game, String> {
+public interface GameRepository extends JpaRepository<Game, Long> {
 
     Page<Game> findAll(Specification<Game> spec, Pageable page);
 
@@ -23,10 +23,10 @@ public interface GameRepository extends JpaRepository<Game, String> {
     List<String> urlsOfNotUpdatedGames();
 
     @Query("select id from Game games where games.url = :url")
-    String getGameIdByUrl(@Param("url") String url);
+    Long getGameIdByUrl(@Param("url") String url);
 
     @Modifying
     @Transactional
     @Query(value = "insert into Games_history (date_of_change, game_id, game_price) values (:date, :id, :price)", nativeQuery = true)
-    void saveHistory(@Param("id") String id, @Param("price") int price, @Param("date") LocalDate date);
+    void saveHistory(@Param("id") long id, @Param("price") int price, @Param("date") LocalDate date);
 }

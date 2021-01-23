@@ -49,11 +49,11 @@ public interface UserControllerIntf {
     @PutMapping("/{userId}/{gameId}")
     @Consumes(MediaType.APPLICATION_JSON)
     ResponseEntity<Object> addGameToWishList(@PathVariable("userId") long userId,
-                                             @PathVariable("gameId") String gameId);
+                                             @PathVariable("gameId") long gameId);
 
     @DeleteMapping("/{userId}/{gameId}")
     ResponseEntity<Object> deleteGameFromWishList(@PathVariable(value = "userId") long userId,
-                                                  @PathVariable(value = "gameId") String gameId);
+                                                  @PathVariable(value = "gameId") long gameId);
 
     @DeleteMapping("/{userId}/all")
     ResponseEntity<Object> clearWishList(@PathVariable(value = "userId") long userId);

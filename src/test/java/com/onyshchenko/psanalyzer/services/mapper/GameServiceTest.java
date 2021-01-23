@@ -37,7 +37,7 @@ class GameServiceTest {
     @Captor
     ArgumentCaptor<Game> gameArgumentCaptor;
 
-    private static final String GAME_ID = "game-Id";
+    private static final long GAME_ID = 123;
 
     @Test
     final void checkGamePriceUpdatedTest() {

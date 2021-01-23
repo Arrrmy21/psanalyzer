@@ -76,7 +76,7 @@ public class UserController implements UserControllerIntf {
     }
 
     @Override
-    public ResponseEntity<Object> addGameToWishList(long userId, String gameId) {
+    public ResponseEntity<Object> addGameToWishList(long userId, long gameId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new IllegalArgumentException(USER_NOT_FOUND + userId));
         Optional<Game> game = gameService.findGameIfAlreadyExists(gameId);
@@ -90,7 +90,7 @@ public class UserController implements UserControllerIntf {
     }
 
     @Override
-    public ResponseEntity<Object> deleteGameFromWishList(long userId, String gameId) {
+    public ResponseEntity<Object> deleteGameFromWishList(long userId, long gameId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new IllegalArgumentException(USER_NOT_FOUND + userId));
         Optional<Game> game = gameService.findGameIfAlreadyExists(gameId);

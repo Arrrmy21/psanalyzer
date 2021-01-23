@@ -6,6 +6,8 @@ import javax.persistence.Column;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
@@ -24,8 +26,9 @@ public class Game {
 
     @Id
     @NotNull
-    @Column(name = "id")
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "game_id")
+    private long id;
 
     @NotNull
     @Column(name = "game_name")
@@ -78,7 +81,6 @@ public class Game {
     }
 
     public Game(String name, Price price, String url) {
-        this.id = String.valueOf(name.hashCode());
         this.name = name;
         this.searchName = name.toLowerCase();
         this.url = url;
@@ -101,11 +103,11 @@ public class Game {
         this.price = price;
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(long id) {
         this.id = id;
     }
 

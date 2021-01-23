@@ -39,7 +39,7 @@ public class GameService {
     @Autowired
     private GameMapper gameMapper;
 
-    public Optional<Game> findGameIfAlreadyExists(String id) {
+    public Optional<Game> findGameIfAlreadyExists(long id) {
         return gameRepository.findById(id);
     }
 
@@ -100,12 +100,12 @@ public class GameService {
         Page<Game> listOfGames = getListOfGames(pageRequest, filter);
 
         Optional<User> user = userRepository.findById(userId);
-        Set<String> usersWishList = new HashSet<>();
+        Set<Long> usersWishList = new HashSet<>();
         if (user.isPresent()) {
             usersWishList = user.get().getWishList();
         }
-        for (String gameId : usersWishList) {
-            listOfGames.get().filter(game -> game.getId().equals(gameId)).forEach(g -> g.setInWl(true));
+        for (Long gameId : usersWishList) {
+            listOfGames.get().filter(game -> game.getId() == gameId).forEach(g -> g.setInWl(true));
         }
 
         return listOfGames;
@@ -118,12 +118,12 @@ public class GameService {
         int currentPage = pageable.getPageNumber();
         int startItem = currentPage * pageSize;
 
-        List<String> gameList = new ArrayList<>();
+        List<Long> gameList = new ArrayList<>();
         List<Game> games = new ArrayList<>();
         if (user.isPresent()) {
             gameList = new ArrayList<>(user.get().getWishList());
 
-            for (String id : gameList) {
+            for (Long id : gameList) {
                 Optional<Game> game = gameRepository.findById(id);
                 if (game.isPresent()) {
                     games.add(game.get());
@@ -139,7 +139,7 @@ public class GameService {
         return new PageImpl<>(games, PageRequest.of(currentPage, pageSize), gameList.size());
     }
 
-    public void updateGamePatch(Game updatedData, String gameId) {
+    public void updateGamePatch(Game updatedData, long gameId) {
 
         Optional<Game> gameFromDb = gameRepository.findById(gameId);
 
@@ -158,15 +158,15 @@ public class GameService {
         return gameRepository.urlsOfNotUpdatedGames();
     }
 
-    public String getGameIdByUrl(String url) {
+    public long getGameIdByUrl(String url) {
         return gameRepository.getGameIdByUrl(url);
     }
 
-    public Optional<Game> getGame(String gameId) {
+    public Optional<Game> getGame(long gameId) {
         return gameRepository.findById(gameId);
     }
 
-    public Optional<Game> getPersonalizedGame(String gameId, long userId) {
+    public Optional<Game> getPersonalizedGame(long gameId, long userId) {
         Optional<Game> game = gameRepository.findById(gameId);
 
         if (!game.isPresent()) {
@@ -174,11 +174,11 @@ public class GameService {
         }
         Optional<User> user = userRepository.findById(userId);
 
-        Set<String> usersWishList = new HashSet<>();
+        Set<Long> usersWishList = new HashSet<>();
         if (user.isPresent()) {
             usersWishList = user.get().getWishList();
         }
-        for (String id : usersWishList) {
+        for (Long id : usersWishList) {
             if (id.equals(game.get().getId())) {
                 game.get().setInWl(true);
                 break;

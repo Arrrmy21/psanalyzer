@@ -34,14 +34,14 @@ public class GameController implements GameControllerIntf {
     @Autowired
     private HtmlHookService htmlHookService;
 
-    public Optional<Game> getGame(@PathVariable(value = "gameId") String gameId) {
+    public Optional<Game> getGame(@PathVariable(value = "gameId") long gameId) {
         LOGGER.info("Getting game by id [{}] from repository.", gameId);
 
         return gameService.getGame(gameId);
     }
 
     @Override
-    public Optional<Game> getPersonalizedGame(String gameId, long userId) {
+    public Optional<Game> getPersonalizedGame(long gameId, long userId) {
         LOGGER.info("Getting PERSONALIZED game by id [{}] from repository.", gameId);
 
         return gameService.getPersonalizedGame(gameId, userId);
@@ -79,7 +79,7 @@ public class GameController implements GameControllerIntf {
     }
 
     @Override
-    public ResponseEntity<Object> deleteGame(@PathVariable String id) {
+    public ResponseEntity<Object> deleteGame(@PathVariable long id) {
         LOGGER.info("Trying to delete the game from repository.");
         Game game = gameRepository.findById(id).orElseThrow(
                 () -> new NoSuchElementException("Game not found id: " + id));

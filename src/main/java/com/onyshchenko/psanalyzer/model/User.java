@@ -43,16 +43,16 @@ public class User {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "users_wishList", joinColumns = @JoinColumn(name = "user_id"))
-    private Set<String> wishList = new HashSet<>();
+    private Set<Long> wishList = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
 
-    public Set<String> getWishList() {
+    public Set<Long> getWishList() {
         return wishList;
     }
 
-    public void setWishList(Set<String> wishList) {
+    public void setWishList(Set<Long> wishList) {
         this.wishList = wishList;
     }
 
