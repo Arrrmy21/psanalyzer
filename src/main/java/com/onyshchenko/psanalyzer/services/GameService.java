@@ -62,8 +62,8 @@ public class GameService {
             if (!gameFromDb.isPresent()) {
                 LOGGER.info("Creating game record.");
                 try {
-                    gameRepository.save(game);
-                    gameRepository.saveHistory(game.getId(), game.getPrice().getCurrentPrice(), LocalDate.now());
+                    Game savedGame = gameRepository.save(game);
+                    gameRepository.saveHistory(savedGame.getId(), game.getPrice().getCurrentPrice(), LocalDate.now());
                 } catch (Exception ex) {
                     LOGGER.info("Exception occurred while saving game [{}].", game.getId());
                 }
@@ -109,7 +109,7 @@ public class GameService {
             usersWishList = user.get().getWishList();
         }
         for (Long gameId : usersWishList) {
-            listOfGames.get().filter(game -> game.getId() == gameId).forEach(g -> g.setInWl(true));
+            listOfGames.get().filter(game -> game.getId().equals(gameId)).forEach(g -> g.setInWl(true));
         }
 
         return listOfGames;
