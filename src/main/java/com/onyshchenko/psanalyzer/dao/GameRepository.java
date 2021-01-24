@@ -13,11 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface GameRepository extends JpaRepository<Game, Long> {
 
     Page<Game> findAll(Specification<Game> spec, Pageable page);
+
+    Optional<Game> findByName(String name);
 
     @Query("select url from Game games where games.detailedInfoFilledIn = false")
     List<String> urlsOfNotUpdatedGames();

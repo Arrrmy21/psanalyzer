@@ -43,6 +43,10 @@ public class GameService {
         return gameRepository.findById(id);
     }
 
+    public Optional<Game> findGameByName(String name) {
+        return gameRepository.findByName(name);
+    }
+
     public void checkCollectedListOfGamesToExisted(List<Game> games) {
 
         LOGGER.info("Checking list of games.");
@@ -54,7 +58,7 @@ public class GameService {
 
         for (Game game : games) {
             LOGGER.info("Checking game record for name: [{}].", game.getName());
-            Optional<Game> gameFromDb = findGameIfAlreadyExists(game.getId());
+            Optional<Game> gameFromDb = findGameByName(game.getName());
             if (!gameFromDb.isPresent()) {
                 LOGGER.info("Creating game record.");
                 try {

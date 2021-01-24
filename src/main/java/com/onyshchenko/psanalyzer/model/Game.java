@@ -28,7 +28,7 @@ public class Game {
     @NotNull
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "game_id")
-    private long id;
+    private Long id;
 
     @NotNull
     @Column(name = "game_name")
@@ -103,11 +103,11 @@ public class Game {
         this.price = price;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

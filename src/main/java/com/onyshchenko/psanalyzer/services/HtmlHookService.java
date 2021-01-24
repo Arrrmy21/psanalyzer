@@ -149,8 +149,8 @@ public class HtmlHookService {
         }
         LOGGER.info("Collected [{}] games which are not fully filled.", urls.size());
 
-        try {
-            for (String url : urls) {
+        for (String url : urls) {
+            try {
                 Document document = getDataFromUrlWithJsoup(BASE_URL + "product/" + url);
 
                 if (document != null) {
@@ -161,12 +161,11 @@ public class HtmlHookService {
                 } else {
                     LOGGER.info("Error occurred while getting game by url [{}]. Skipping updating with detailed info", url);
                 }
-
+            } catch (Exception ex) {
+                LOGGER.info("Error while getting detailed info about game [{}].", url);
             }
-        } catch (Exception ex) {
-            LOGGER.info("Error while getting detailed info about games.");
+            LOGGER.info("Process of getting detailed info about games FINISHED.");
         }
-        LOGGER.info("Process of getting detailed info about games FINISHED.");
     }
 
     private void notifyUserByChatId(String chatId) {

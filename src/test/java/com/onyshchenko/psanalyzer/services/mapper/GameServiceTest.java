@@ -38,6 +38,7 @@ class GameServiceTest {
     ArgumentCaptor<Game> gameArgumentCaptor;
 
     private static final long GAME_ID = 123;
+    private static final String GAME_NAME = "Game-Name-1";
 
     @Test
     final void checkGamePriceUpdatedTest() {
@@ -45,7 +46,7 @@ class GameServiceTest {
         Game gameFromDb = getGame(getPriceFromDb());
         assertEquals(150, gameFromDb.getPrice().getCurrentPrice());
 
-        when(gameRepository.findById(GAME_ID)).thenReturn(Optional.of(gameFromDb));
+        when(gameRepository.findByName(GAME_NAME)).thenReturn(Optional.of(gameFromDb));
 
         doAnswer(invocation -> {
             Price arg0 = invocation.getArgument(0);
@@ -71,6 +72,7 @@ class GameServiceTest {
     private Game getGame(Price price) {
         Game game = new Game();
         game.setId(GAME_ID);
+        game.setName(GAME_NAME);
         game.setPrice(price);
 
         return game;
