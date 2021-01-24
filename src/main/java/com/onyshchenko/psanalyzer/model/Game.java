@@ -25,7 +25,6 @@ import java.util.Set;
 public class Game {
 
     @Id
-    @NotNull
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "game_id")
     private Long id;
