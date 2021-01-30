@@ -9,7 +9,7 @@ import java.util.Map;
 public enum Genre {
 
     ACTION("Action"),
-    Adventure("Приключения"),
+    ADVENTURE("Приключения"),
     ARCADE("Аркада"),
     EDUCATIONAL("Образовательные"),
     FAMILY("Семейные"),
@@ -47,7 +47,7 @@ public enum Genre {
     private Long id;
 
     @Column(name = "genre_name")
-    private String genreName;
+    private final String genreName;
 
     Genre(Long id, String genreName) {
         this.id = id;
@@ -64,10 +64,6 @@ public enum Genre {
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public static Genre of(String genreName) {

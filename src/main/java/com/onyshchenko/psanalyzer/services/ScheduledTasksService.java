@@ -15,13 +15,11 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Component
-public class HtmlHookService {
+public class ScheduledTasksService {
 
     @Autowired
     private GameService gameService;
@@ -30,7 +28,7 @@ public class HtmlHookService {
     @Autowired
     private DocumentParseService documentParseService;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HtmlHookService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledTasksService.class);
 
     private static final String BASE_URL = "https://store.playstation.com/ru-ua/";
 
@@ -43,66 +41,49 @@ public class HtmlHookService {
 
     //    @Scheduled(fixedDelay = 6000000)
     @Scheduled(cron = "0 0 5 * * *", zone = "GMT+2:00")
-    public void collectMinimalDataAboutGamesScheduledTask() {
+    public void collectDataAboutGamesByList() {
 
         LocalDateTime startingTime = LocalDateTime.now();
-        LOGGER.info("Process of getting games data from url STARTED.");
+        LOGGER.info("Entering method [collectMinimalDataAboutGamesScheduledTask].");
 
-//        collectDataFromCategoryExclusive(UrlCategory.EXCLUSIVE);
-        collectDataFromCategory(UrlCategory.ALL_GAMES);
-        collectDataFromCategory(UrlCategory.SALES);
-        collectDataFromCategory(UrlCategory.VR);
-        collectDataFromCategory(UrlCategory.PS5);
-        LOGGER.info("Process of getting games data from url FINISHED.");
+        collectDataFromSiteByCategory(UrlCategory.ALL_GAMES);
+        collectDataFromSiteByCategory(UrlCategory.SALES);
+        collectDataFromSiteByCategory(UrlCategory.VR);
+        collectDataFromSiteByCategory(UrlCategory.PS5);
 
         gettingDetailedInfoAboutGames();
         LocalDateTime finishingTime = LocalDateTime.now();
-
-        LOGGER.info("Collecting data about games finished in [{}] minutes", Duration.between(startingTime, finishingTime).toMinutes());
+        LOGGER.info("Collecting data about games finished in [{}] minutes",
+                Duration.between(startingTime, finishingTime).toMinutes());
     }
 
-    private void collectDataFromCategoryExclusive(UrlCategory category) {
-        try {
-            Document document = getDataFromUrlWithJsoup(category.getUrl());
-            List<String> listOfGameUrls = document.getElementsByAttributeValueMatching("href", "ru-ua/games/").eachAttr("href");
-
-            // TODO: Add parsing of exclusive PS games.
-            Set<String> setOfUrls = new HashSet<>(listOfGameUrls);
-
-            LOGGER.info("Collected [{}] of urls.", setOfUrls);
-        } catch (IOException e) {
-            LOGGER.info("Exception during getting document from page [{}]", category.getUrl());
-        }
-    }
-
-    private void collectDataFromCategory(UrlCategory urlCategory) {
+    private void collectDataFromSiteByCategory(UrlCategory urlCategory) {
 
         LOGGER.info("Collecting data from category [{}]", urlCategory.getCategory());
         for (int page = 1; page <= totalPages; page++) {
 
             LOGGER.info("Get all prices form page: [{}].", page);
-            Document document = null;
             String url = BASE_URL + urlCategory.getUrl() + page;
 
-            try {
-                document = getDataFromUrlWithJsoup(url);
-            } catch (IOException e) {
-                LOGGER.info("Exception during getting document from page [{}]", page);
-            }
+            Document document = getDataFromUrlWithJsoup(url);
 
-            if (document != null) {
-                int pagesInDocument = document.getElementsByClass("ems-sdk-grid-paginator__page-buttons")
-                        .get(0).childNodes().size();
-                String s = document.getElementsByClass("ems-sdk-grid-paginator__page-buttons")
-                        .get(0).childNodes().get(pagesInDocument - 1).childNode(0).childNode(0).toString();
-                totalPages = Integer.parseInt(s);
-                List<Game> games = documentParseService.getInitialInfoAboutGamesFromDocument(document, urlCategory.getCategory());
-                gameService.checkCollectedListOfGamesToExisted(games);
+            if (document == null) {
+                continue;
             }
+            updatePagesNumberInDocument(document);
 
+            List<Game> games = documentParseService.getInitialInfoAboutGamesFromDocument(document, urlCategory.getCategory());
+            gameService.compareCollectedListOfGamesToExisted(games);
         }
     }
 
+    private void updatePagesNumberInDocument(Document document) {
+        int pagesInDocument = document.getElementsByClass("ems-sdk-grid-paginator__page-buttons")
+                .get(0).childNodes().size();
+        String s = document.getElementsByClass("ems-sdk-grid-paginator__page-buttons")
+                .get(0).childNodes().get(pagesInDocument - 1).childNode(0).childNode(0).toString();
+        totalPages = Integer.parseInt(s);
+    }
 
     //        @Scheduled(fixedDelay = 6000000)
     @Scheduled(cron = "0 0 20 * * *", zone = "GMT+2:00")
@@ -112,7 +93,7 @@ public class HtmlHookService {
 
         for (Long userId : userIds) {
 
-            Optional<User> user = userService.findById(userId);
+            Optional<User> user = userService.findUserById(userId);
 
             if (user.isPresent() && user.get().getChatId() != null && user.get().isNotification()) {
                 String chatId = user.get().getChatId();
@@ -123,7 +104,7 @@ public class HtmlHookService {
         }
     }
 
-    public Document getDataFromUrlWithJsoup(String address) throws IOException {
+    public Document getDataFromUrlWithJsoup(String address) {
 
         try {
             LOGGER.info("Getting document from address: [{}]", address);
@@ -150,22 +131,16 @@ public class HtmlHookService {
         LOGGER.info("Collected [{}] games which are not fully filled.", urls.size());
 
         for (String url : urls) {
-            try {
-                Document document = getDataFromUrlWithJsoup(BASE_URL + "product/" + url);
+            Document document = getDataFromUrlWithJsoup(BASE_URL + "product/" + url);
 
-                if (document != null) {
-                    Game gameForUpdating = documentParseService.getDetailedGameInfoFromDocument(document);
-
-                    long gameId = gameService.getGameIdByUrl(url);
-                    gameService.updateGamePatch(gameForUpdating, gameId);
-                } else {
-                    LOGGER.info("Error occurred while getting game by url [{}]. Skipping updating with detailed info", url);
-                }
-            } catch (Exception ex) {
-                LOGGER.info("Error while getting detailed info about game [{}].", url);
+            if (document == null) {
+                continue;
             }
-            LOGGER.info("Process of getting detailed info about games FINISHED.");
+            Game gameForUpdating = documentParseService.getDetailedGameInfoFromDocument(document);
+            long gameId = gameService.getGameIdByUrl(url);
+            gameService.updateGamePatch(gameForUpdating, gameId);
         }
+        LOGGER.info("Process of getting detailed info about games FINISHED.");
     }
 
     private void notifyUserByChatId(String chatId) {

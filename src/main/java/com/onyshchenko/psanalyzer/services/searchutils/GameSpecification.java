@@ -3,6 +3,7 @@ package com.onyshchenko.psanalyzer.services.searchutils;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.Price;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -16,16 +17,20 @@ public class GameSpecification implements Specification<Game> {
     public static final String CURRENT_PRICE = "currentPrice";
     public static final String CURRENT_DISCOUNT = "currentDiscount";
 
-    private SearchCriteria criteria;
+    private final transient SearchCriteria criteria;
 
     public GameSpecification(SearchCriteria criteria) {
         this.criteria = criteria;
     }
 
     @Override
-    public Predicate toPredicate(Root<Game> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+    public Predicate toPredicate(Root<Game> root, @Nullable CriteriaQuery<?> criteriaQuery, @Nullable CriteriaBuilder criteriaBuilder) {
 
         Join<Game, Price> priceJoin = root.join("price");
+
+        if (criteriaBuilder == null) {
+            return null;
+        }
 
         switch (criteria.getKey()) {
             case PRICE:

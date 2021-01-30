@@ -30,6 +30,7 @@ public class DocumentParseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentParseService.class);
 
     private static final String DATA_QA = "data-qa";
+    private static final String OLD_PRICE_ELEMENT_DATA = "price price--strikethrough psw-m-l-xs";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
             .ofPattern("d/M/yyyy");
 
@@ -86,61 +87,28 @@ public class DocumentParseService {
 
     public List<Game> getInitialInfoAboutGamesFromDocument(Document doc, Category category) {
 
-        Elements headline = doc.getElementsByClass(
+        Elements listOfGames = doc.getElementsByClass(
                 "ems-sdk-product-tile-link");
         List<Game> games = new ArrayList<>();
         JSONParser parser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
-        for (Element element : headline) {
+        for (Element gameInfoInHtml : listOfGames) {
             try {
-                JSONObject json = (JSONObject) parser.parse(element.attributes().get("data-telemetry-meta"));
+
+                JSONObject json = (JSONObject) parser.parse(gameInfoInHtml.attributes().get("data-telemetry-meta"));
 
                 String gameName = json.getAsString("name");
                 String gameSku = json.getAsString("id");
-                int currentPriceInt;
-                int previousPriceInt = 0;
-                Currency currency = Currency.UAH;
 
-                Elements checkIfPriceClassExists = element.getElementsByClass("price__container");
+                Elements checkIfPriceClassExists = gameInfoInHtml.getElementsByClass("price__container");
                 if (checkIfPriceClassExists == null || checkIfPriceClassExists.isEmpty()) {
                     LOGGER.info("Broken info about game collected. Game name: [{}], id: [{}]", gameName, gameSku);
                     continue;
                 }
 
-                String currentGamePriceString = json.getAsString("price");
-                if (currentGamePriceString.equalsIgnoreCase("Входит в подписку")) {
-                    //TODO: Add psplus & eagames subscriptions.
-                    currentGamePriceString = null;
-                }
-                if (currentGamePriceString == null || currentGamePriceString.equalsIgnoreCase("бесплатно")) {
-                    currentPriceInt = 0;
-                } else {
-                    String priceString = currentGamePriceString.substring(0, currentGamePriceString.length() - 4)
-                            .replace(" ", "");
-                    currentPriceInt = (int) Double.parseDouble(priceString);
-                    String currencyString = currentGamePriceString.substring(currentGamePriceString.length() - 3);
-                    currency = Currency.of(currencyString);
-                }
-
-
-                Elements oldPriceElementsList = element.getElementsByClass("price price--strikethrough psw-m-l-xs");
-                if (!oldPriceElementsList.isEmpty()) {
-                    String previousPrice = oldPriceElementsList.get(0).childNode(0).toString();
-                    String fluentPrice = previousPrice.substring(1, previousPrice.length() - 4)
-                            .replace(" ", "");
-                    previousPriceInt = (int) Double.parseDouble(fluentPrice);
-                }
-
-
-                Price price;
-                if (previousPriceInt != 0) {
-                    price = new Price(currentPriceInt, previousPriceInt, currency);
-                } else {
-                    if (currentPriceInt == 0) {
-                        price = new Price();
-                    } else {
-                        price = new Price(currentPriceInt, currency);
-                    }
-                }
+                int currentPrice = getPreviousPriceFromJson(json);
+                int previousPrice = getOldPriceFromElementIfExist(gameInfoInHtml.getElementsByClass(OLD_PRICE_ELEMENT_DATA));
+                Currency currency = Currency.UAH;
+                Price price = preparePriceFromValues(currentPrice, previousPrice, currency);
 
                 Game createdGame = new Game(gameName, price, gameSku);
                 createdGame.setCategory(category);
@@ -152,7 +120,53 @@ public class DocumentParseService {
             }
         }
         return games;
+    }
 
+    private Price preparePriceFromValues(int currentPrice, int previousPrice, Currency currency) {
+        if (previousPrice != 0) {
+            return new Price(currentPrice, previousPrice, currency);
+        } else {
+            if (currentPrice == 0) {
+                return new Price();
+            } else {
+                return new Price(currentPrice, currency);
+            }
+        }
+    }
+
+    private int getPreviousPriceFromJson(JSONObject json) {
+        String currentGamePriceString = json.getAsString("price");
+
+        if (currentGamePriceString.equalsIgnoreCase("Входит в подписку")
+                || currentGamePriceString.equalsIgnoreCase("бесплатно")) {
+            //TODO: Add psplus & eagames subscriptions.
+            return 0;
+        }
+
+        try {
+            String priceString = currentGamePriceString.substring(0, currentGamePriceString.length() - 4)
+                    .replace(" ", "");
+            return (int) Double.parseDouble(priceString);
+        } catch (Exception ex) {
+            LOGGER.info("Exception during converting current price to int");
+            return 0;
+        }
+    }
+
+    private int getOldPriceFromElementIfExist(Elements oldPriceElementsList) {
+
+        if (oldPriceElementsList.isEmpty()) {
+            return 0;
+        }
+        try {
+            String previousPrice = oldPriceElementsList.get(0).childNode(0).toString();
+            String fluentPrice = previousPrice.substring(1, previousPrice.length() - 4)
+                    .replace(" ", "");
+            return (int) Double.parseDouble(fluentPrice);
+        } catch (Exception ex) {
+            LOGGER.info("Exception in converting of old price from element to int.");
+            return 0;
+        }
     }
 
     private Set<Genre> extractGenresFromGameElement(Element element) {

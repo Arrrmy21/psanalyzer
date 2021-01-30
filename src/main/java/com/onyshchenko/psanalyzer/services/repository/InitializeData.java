@@ -1,4 +1,4 @@
-package com.onyshchenko.psanalyzer.services;
+package com.onyshchenko.psanalyzer.services.repository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

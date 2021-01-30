@@ -15,6 +15,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.ValidationException;
@@ -39,64 +41,67 @@ public class GameService {
     @Autowired
     private GameMapper gameMapper;
 
-    public Optional<Game> findGameIfAlreadyExists(long id) {
-        return gameRepository.findById(id);
-    }
-
     public Optional<Game> findGameByName(String name) {
         return gameRepository.findByName(name);
     }
 
-    public void checkCollectedListOfGamesToExisted(List<Game> games) {
-
-        LOGGER.info("Checking list of games.");
+    public void compareCollectedListOfGamesToExisted(List<Game> games) {
 
         if (games.isEmpty()) {
             LOGGER.info("List of games is empty.");
             return;
         }
-
         for (Game game : games) {
             LOGGER.info("Checking game record for name: [{}].", game.getName());
             Optional<Game> gameFromDb = findGameByName(game.getName());
-            if (!gameFromDb.isPresent()) {
-                LOGGER.info("Creating game record.");
-                try {
-                    Game savedGame = gameRepository.save(game);
-                    gameRepository.saveHistory(savedGame.getId(), game.getPrice().getCurrentPrice(), LocalDate.now());
-                } catch (Exception ex) {
-                    LOGGER.info("Exception occurred while saving game [{}].", game.getId());
-                }
-            } else {
-                if (game.getPrice().getCurrentPrice() != gameFromDb.get().getPrice().getCurrentPrice()) {
-                    LOGGER.info("Game price changed. Collecting and comparing data.");
-                    try {
-                        gameRepository.saveHistory(game.getId(), game.getPrice().getCurrentPrice(), LocalDate.now());
-                        priceService.updatePriceComparingWithExisting(game.getPrice(), gameFromDb.get().getPrice());
-                    } catch (Exception e) {
-                        LOGGER.error("Exception during updating price.");
-                    }
 
-                    gameRepository.save(gameFromDb.get());
-                } else LOGGER.info("Actual game already exists in DB.");
+            if (!gameFromDb.isPresent()) {
+                saveGameRecordIntoDb(game);
+            } else {
+                if (currentGamePriceDiffersThenStored(game, gameFromDb.get())) {
+                    priceService.updatePriceComparingWithExisting(game.getPrice(), gameFromDb.get().getPrice());
+                    saveGameRecordIntoDb(gameFromDb.get());
+                }
             }
+        }
+    }
+
+    private boolean currentGamePriceDiffersThenStored(Game game, Game gameFromDb) {
+        return game.getPrice().getCurrentPrice() != gameFromDb.getPrice().getCurrentPrice();
+    }
+
+    public void saveGameRecordIntoDb(Game game) {
+        try {
+            Game savedGame = gameRepository.save(game);
+            savePriceChangingHistory(savedGame);
+        } catch (Exception ex) {
+            LOGGER.info("Exception during saving game to database", ex);
+        }
+    }
+
+    private void savePriceChangingHistory(Game game) {
+        try {
+            gameRepository.saveHistory(game.getId(), game.getPrice().getCurrentPrice(), LocalDate.now());
+        } catch (Exception ex) {
+            LOGGER.info("Exception during saving price history", ex);
         }
     }
 
     public Page<Game> getListOfGames(PageRequest pageRequest, String filter) throws ValidationException {
 
-        if (filter != null) {
-            Specification<Game> spec = FilteringUtils.getSpecificationFromFilter(filter);
-
-            if (((GameSpecification) spec).getCriteria().getKey().equals(RequestFilters.USERID)) {
-                String sp = String.valueOf(((GameSpecification) spec).getCriteria().getValue());
-                long userId = Long.parseLong(sp);
-
-                return prepareWishList(pageRequest, userId);
-            }
-            return gameRepository.findAll(spec, pageRequest);
+        if (filter == null) {
+            return gameRepository.findAll(pageRequest);
         }
-        return gameRepository.findAll(pageRequest);
+        Specification<Game> spec = FilteringUtils.getSpecificationFromFilter(filter);
+
+        if (((GameSpecification) spec).getCriteria().getKey().equals(RequestFilters.USERID)) {
+            String sp = String.valueOf(((GameSpecification) spec).getCriteria().getValue());
+            long userId = Long.parseLong(sp);
+
+            return prepareWishList(pageRequest, userId);
+        }
+        return gameRepository.findAll(spec, pageRequest);
+
     }
 
     public Page<Game> getPersonalizedListOfGames(PageRequest pageRequest, String filter, long userId)
@@ -118,47 +123,52 @@ public class GameService {
     public Page<Game> prepareWishList(Pageable pageable, long userId) {
 
         Optional<User> user = userRepository.findById(userId);
+        if (!user.isPresent()) {
+            LOGGER.info("User with id [{}] doesn't exist.", userId);
+            return Page.empty();
+        }
+
+        Set<Long> allGameIdsInWishlistOfUser = user.get().getWishList();
+        List<Long> paginatedGameIdsFromWishlist = correlateListOfGamesToPagination(allGameIdsInWishlistOfUser, pageable);
+
+        List<Game> games = new ArrayList<>();
+        for (Long id : paginatedGameIdsFromWishlist) {
+            Optional<Game> game = gameRepository.findById(id);
+            if (game.isPresent()) {
+                games.add(game.get());
+            } else {
+                LOGGER.info("Game [{}] in user's wishlist doesn't exist", id);
+            }
+        }
+
+        return new PageImpl<>(games, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()),
+                paginatedGameIdsFromWishlist.size());
+    }
+
+    private List<Long> correlateListOfGamesToPagination(Set<Long> setOfGames, Pageable pageable) {
+
         int pageSize = pageable.getPageSize();
         int currentPage = pageable.getPageNumber();
         int startItem = currentPage * pageSize;
 
-        List<Long> gameList = new ArrayList<>();
-        List<Game> games = new ArrayList<>();
-        if (user.isPresent()) {
-            gameList = new ArrayList<>(user.get().getWishList());
-
-            for (Long id : gameList) {
-                Optional<Game> game = gameRepository.findById(id);
-                if (game.isPresent()) {
-                    games.add(game.get());
-                } else {
-                    LOGGER.info("Game [{}] in user's wishlist doesn't exist", id);
-                }
-            }
-
-            int toIndex = Math.min(startItem + pageSize, gameList.size());
-            games = games.subList(startItem, toIndex);
-
-        }
-        return new PageImpl<>(games, PageRequest.of(currentPage, pageSize), gameList.size());
+        int toIndex = Math.min(startItem + pageSize, setOfGames.size());
+        List<Long> listOfGames = new ArrayList<>(setOfGames);
+        return listOfGames.subList(startItem, toIndex);
     }
 
     public void updateGamePatch(Game updatedData, long gameId) {
 
         Optional<Game> gameFromDb = gameRepository.findById(gameId);
 
-        Game gameDb;
         if (gameFromDb.isPresent()) {
-            gameDb = gameFromDb.get();
+            Game gameDb = gameFromDb.get();
             gameMapper.updateGameData(updatedData, gameDb);
 
             gameRepository.save(gameDb);
         }
-
     }
 
     public List<String> getUrlsOfNotUpdatedGames() {
-
         return gameRepository.urlsOfNotUpdatedGames();
     }
 
@@ -172,17 +182,13 @@ public class GameService {
 
     public Optional<Game> getPersonalizedGame(long gameId, long userId) {
         Optional<Game> game = gameRepository.findById(gameId);
-
-        if (!game.isPresent()) {
-            return game;
-        }
         Optional<User> user = userRepository.findById(userId);
 
-        Set<Long> usersWishList = new HashSet<>();
-        if (user.isPresent()) {
-            usersWishList = user.get().getWishList();
+        if (!game.isPresent() || !user.isPresent()) {
+            return game;
         }
-        for (Long id : usersWishList) {
+
+        for (Long id : user.get().getWishList()) {
             if (id.equals(game.get().getId())) {
                 game.get().setInWl(true);
                 break;
@@ -191,4 +197,26 @@ public class GameService {
 
         return game;
     }
+
+    public Optional<Game> createGame(Game game) {
+        LOGGER.info("Creating game record with name [{}].", game.getName());
+        Game createdGame = gameRepository.save(game);
+
+        return Optional.of(createdGame);
+    }
+
+    public Optional<Game> getGameByID(long id) {
+        return gameRepository.findById(id);
+    }
+
+    public ResponseEntity<Object> deleteGame(long gameId) {
+        Optional<Game> game = getGameByID(gameId);
+        if (game.isPresent()) {
+            gameRepository.delete(game.get());
+            return new ResponseEntity<>("Game with id [" + gameId + "] deleted ", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Game with id [" + gameId + "] not found ", HttpStatus.NO_CONTENT);
+        }
+    }
+
 }

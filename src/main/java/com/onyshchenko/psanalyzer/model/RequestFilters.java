@@ -13,7 +13,7 @@ public enum RequestFilters {
         this.filterName = filter;
     }
 
-    private String filterName;
+    private final String filterName;
 
     public String getFilterName() {
         return filterName;

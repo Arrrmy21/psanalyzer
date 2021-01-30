@@ -7,7 +7,7 @@ public enum Currency {
 
     UAH("UAH");
 
-    private static Map<String, Currency> map = new HashMap<>(values().length, 1);
+    private static final Map<String, Currency> map = new HashMap<>(values().length, 1);
 
     static {
         for (Currency currency : values()) {
@@ -15,7 +15,7 @@ public enum Currency {
         }
     }
 
-    private String currencyName;
+    private final String currencyName;
 
     Currency(String name) {
         currencyName = name;

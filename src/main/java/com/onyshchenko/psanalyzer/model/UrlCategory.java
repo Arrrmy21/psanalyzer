@@ -9,8 +9,8 @@ public enum UrlCategory {
     EXCLUSIVE("https://www.playstation.com/ru-ua/ps4/ps4-games/ps4-exclusives/", Category.EXCLUSIVE);
 
 
-    private String searchingUrl;
-    private Category category;
+    private final String searchingUrl;
+    private final Category category;
 
     UrlCategory(String searchingUrl, Category category) {
         this.searchingUrl = searchingUrl;

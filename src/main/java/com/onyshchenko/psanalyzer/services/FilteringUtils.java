@@ -13,6 +13,9 @@ import java.util.regex.Pattern;
 @Component
 public class FilteringUtils {
 
+    private FilteringUtils() {
+    }
+
     public static Specification<Game> getSpecificationFromFilter(String filter) throws ValidationException {
 
         GameSpecificationBuilder builder = new GameSpecificationBuilder();

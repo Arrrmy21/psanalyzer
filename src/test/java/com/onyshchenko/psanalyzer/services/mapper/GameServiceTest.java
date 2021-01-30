@@ -27,15 +27,13 @@ import static org.mockito.Mockito.when;
 class GameServiceTest {
 
     @InjectMocks
-    GameService gameService;
+    private GameService gameService;
     @Mock
-    GameRepository gameRepository;
-
+    private GameRepository gameRepository;
     @Mock
-    PriceService priceService;
-
+    private PriceService priceService;
     @Captor
-    ArgumentCaptor<Game> gameArgumentCaptor;
+    private ArgumentCaptor<Game> gameArgumentCaptor;
 
     private static final long GAME_ID = 123;
     private static final String GAME_NAME = "Game-Name-1";
@@ -47,6 +45,7 @@ class GameServiceTest {
         assertEquals(150, gameFromDb.getPrice().getCurrentPrice());
 
         when(gameRepository.findByName(GAME_NAME)).thenReturn(Optional.of(gameFromDb));
+        when(gameRepository.save(any())).thenReturn(Optional.of(gameFromDb));
 
         doAnswer(invocation -> {
             Price arg0 = invocation.getArgument(0);
@@ -60,7 +59,7 @@ class GameServiceTest {
 
         Game newGameFromSite = getGame(getNewPriceFromSite());
 
-        gameService.checkCollectedListOfGamesToExisted(Collections.singletonList(newGameFromSite));
+        gameService.compareCollectedListOfGamesToExisted(Collections.singletonList(newGameFromSite));
         Mockito.verify(gameRepository).save(gameArgumentCaptor.capture());
 
         Game gameForUpdate = gameArgumentCaptor.getValue();

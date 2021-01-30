@@ -19,7 +19,7 @@ public enum Category {
     DEFAULT("Default"),
     EXCLUSIVE("Exclusive");
 
-    private static Map<String, Category> map = new HashMap<>(values().length, 1);
+    private static final Map<String, Category> map = new HashMap<>(values().length, 1);
 
     static {
         for (Category category : values()) {
@@ -27,7 +27,7 @@ public enum Category {
         }
     }
 
-    private String categoryName;
+    private final String categoryName;
 
     Category(String name) {
         categoryName = name;

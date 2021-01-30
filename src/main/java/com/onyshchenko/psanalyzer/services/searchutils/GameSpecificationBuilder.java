@@ -16,9 +16,8 @@ public class GameSpecificationBuilder {
         params = new ArrayList<>();
     }
 
-    public GameSpecificationBuilder with(RequestFilters key, String operation, Object value) {
+    public void with(RequestFilters key, String operation, Object value) {
         params.add(new SearchCriteria(key, operation, value));
-        return this;
     }
 
     public Specification<Game> build() {

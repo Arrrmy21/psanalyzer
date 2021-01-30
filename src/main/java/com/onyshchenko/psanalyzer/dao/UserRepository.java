@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -19,5 +19,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     "left outer join prices on prices.id = games.prices_id " +
                     "where (prices.current_discount > 0)", nativeQuery = true
     )
-    ArrayList<Long> getIdOfUsersThatHaveDiscountOnGameInWishlist();
+    List<Long> getIdOfUsersThatHaveDiscountOnGameInWishlist();
 }

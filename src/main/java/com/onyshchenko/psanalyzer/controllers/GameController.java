@@ -1,11 +1,10 @@
 package com.onyshchenko.psanalyzer.controllers;
 
-import com.onyshchenko.psanalyzer.dao.GameRepository;
 import com.onyshchenko.psanalyzer.controllers.interfaces.GameControllerIntf;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.services.FilteringUtils;
 import com.onyshchenko.psanalyzer.services.GameService;
-import com.onyshchenko.psanalyzer.services.HtmlHookService;
+import com.onyshchenko.psanalyzer.services.ScheduledTasksService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.xml.bind.ValidationException;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
@@ -26,13 +24,11 @@ public class GameController implements GameControllerIntf {
     private static final Logger LOGGER = LoggerFactory.getLogger(GameController.class);
 
     @Autowired
-    private GameRepository gameRepository;
-    @Autowired
     private GameService gameService;
     @Autowired
     private FilteringUtils filteringUtils;
     @Autowired
-    private HtmlHookService htmlHookService;
+    private ScheduledTasksService scheduledTasksService;
 
     public Optional<Game> getGame(@PathVariable(value = "gameId") long gameId) {
         LOGGER.info("Getting game by id [{}] from repository.", gameId);
@@ -50,47 +46,52 @@ public class GameController implements GameControllerIntf {
     @Override
     public Page<Game> getGames(int page, int size, String filter) throws ValidationException {
         LOGGER.info("Getting list of games from repository with params: page=[{}], size=[{}]", page, size);
+
         return gameService.getListOfGames(PageRequest.of(page, size), filter);
     }
 
     @Override
     public Page<Game> getPersonalizedGames(int page, int size, String filter, long userId) throws ValidationException {
         LOGGER.info("Getting PERSONALIZED list of games from repository with params: page=[{}], size=[{}]", page, size);
+
         return gameService.getPersonalizedListOfGames(PageRequest.of(page, size), filter, userId);
     }
 
     @Override
     public ResponseEntity<Object> createGame(Game game) {
-        LOGGER.info("Trying to create game in repository.");
-        gameRepository.save(game);
-        return new ResponseEntity<>("Game created.", HttpStatus.CREATED);
+        Optional<Game> createdGame = gameService.createGame(game);
+        if (createdGame.isPresent()) {
+            return new ResponseEntity<>("Game created.", HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>("Error on creating of game.", HttpStatus.BAD_REQUEST);
+        }
     }
 
     @Override
     public ResponseEntity<Object> updateGame(Game gameDetails) {
         LOGGER.info("Trying to update the game on repository.");
 
-        if (!gameRepository.findById(gameDetails.getId()).isPresent()) {
-            throw new IllegalArgumentException("Game not found id: " + gameDetails.getId());
-        }
+        Optional<Game> gameFromDb = gameService.getGameByID(gameDetails.getId());
 
-        gameRepository.save(gameDetails);
-        return new ResponseEntity<>("Game updated.", HttpStatus.OK);
+        if (!gameFromDb.isPresent()) {
+            return new ResponseEntity<>("Game not found id: [" + gameDetails.getId() + "].", HttpStatus.BAD_REQUEST);
+        } else {
+            gameService.saveGameRecordIntoDb(gameDetails);
+            return new ResponseEntity<>("Game updated.", HttpStatus.OK);
+        }
     }
 
     @Override
     public ResponseEntity<Object> deleteGame(@PathVariable long id) {
         LOGGER.info("Trying to delete the game from repository.");
-        Game game = gameRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("Game not found id: " + id));
-        gameRepository.delete(game);
-        return new ResponseEntity<>("Game deleted.", HttpStatus.OK);
+
+        return gameService.deleteGame(id);
     }
 
     @Override
     public void startUpdateGameProcedure() {
         LOGGER.info("Starting collecting data via controller.");
-        htmlHookService.collectMinimalDataAboutGamesScheduledTask();
+        scheduledTasksService.collectDataAboutGamesByList();
         LOGGER.info("Collecting data via controller FINISHED.");
     }
 }

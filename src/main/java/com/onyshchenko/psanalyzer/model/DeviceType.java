@@ -15,7 +15,7 @@ public enum DeviceType {
     PSV("PS Vita"),
     PSP("PSP");
 
-    private static Map<String, DeviceType> map = new HashMap<>(values().length, 1);
+    private static final Map<String, DeviceType> map = new HashMap<>(values().length, 1);
 
     static {
         for (DeviceType deviceType : values()) {
@@ -29,7 +29,7 @@ public enum DeviceType {
     private Long id;
 
     @Column(name = "device_name")
-    private String deviceName;
+    private final String deviceName;
 
     DeviceType(String deviceName) {
         this.deviceName = deviceName;
