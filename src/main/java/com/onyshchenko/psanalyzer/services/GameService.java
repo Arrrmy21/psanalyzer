@@ -48,7 +48,7 @@ public class GameService {
     public void compareCollectedListOfGamesToExisted(List<Game> games) {
 
         if (games.isEmpty()) {
-            LOGGER.info("List of games is empty.");
+            LOGGER.warn("List of games is empty.");
             return;
         }
         for (Game game : games) {
@@ -56,12 +56,15 @@ public class GameService {
             Optional<Game> gameFromDb = findGameByName(game.getName());
 
             if (!gameFromDb.isPresent()) {
+                LOGGER.info("Saving game to DB with name: [{}].", game.getName());
                 saveGameRecordIntoDb(game);
             } else {
                 if (currentGamePriceDiffersThenStored(game, gameFromDb.get())) {
+                    LOGGER.info("Price of game in DB differs from site. Updating price for game: [{}]", game.getName());
                     priceService.updatePriceComparingWithExisting(game.getPrice(), gameFromDb.get().getPrice());
                     saveGameRecordIntoDb(gameFromDb.get());
                 }
+                LOGGER.info("Actual game info is already in database.");
             }
         }
     }
@@ -73,6 +76,7 @@ public class GameService {
     public void saveGameRecordIntoDb(Game game) {
         try {
             Game savedGame = gameRepository.save(game);
+            LOGGER.info("Game [{}] saved to DB with id: [{}].", game.getName(), savedGame.getId());
             savePriceChangingHistory(savedGame);
         } catch (Exception ex) {
             LOGGER.info("Exception during saving game to database", ex);
@@ -82,6 +86,7 @@ public class GameService {
     private void savePriceChangingHistory(Game game) {
         try {
             gameRepository.saveHistory(game.getId(), game.getPrice().getCurrentPrice(), LocalDate.now());
+            LOGGER.info("Saved price history for game [{}]. Game id: [{}]", game.getName(), game.getId());
         } catch (Exception ex) {
             LOGGER.info("Exception during saving price history", ex);
         }
@@ -124,7 +129,7 @@ public class GameService {
 
         Optional<User> user = userRepository.findById(userId);
         if (!user.isPresent()) {
-            LOGGER.info("User with id [{}] doesn't exist.", userId);
+            LOGGER.warn("User with id [{}] doesn't exist.", userId);
             return Page.empty();
         }
 
@@ -140,13 +145,14 @@ public class GameService {
                 LOGGER.info("Game [{}] in user's wishlist doesn't exist", id);
             }
         }
-
+        LOGGER.info("Collected [{}] games of wishlist for user: [{}]", games.size(), userId);
         return new PageImpl<>(games, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()),
                 paginatedGameIdsFromWishlist.size());
     }
 
     private List<Long> correlateListOfGamesToPagination(Set<Long> setOfGames, Pageable pageable) {
 
+        LOGGER.debug("Preparing paginated list of user's wishlist");
         int pageSize = pageable.getPageSize();
         int currentPage = pageable.getPageNumber();
         int startItem = currentPage * pageSize;
@@ -157,14 +163,13 @@ public class GameService {
     }
 
     public void updateGamePatch(Game updatedData, long gameId) {
-
         Optional<Game> gameFromDb = gameRepository.findById(gameId);
-
         if (gameFromDb.isPresent()) {
             Game gameDb = gameFromDb.get();
             gameMapper.updateGameData(updatedData, gameDb);
 
             gameRepository.save(gameDb);
+            LOGGER.info("Game [{}] updated with Patch method.", gameId);
         }
     }
 
@@ -183,7 +188,7 @@ public class GameService {
     public Optional<Game> getPersonalizedGame(long gameId, long userId) {
         Optional<Game> game = gameRepository.findById(gameId);
         Optional<User> user = userRepository.findById(userId);
-
+        LOGGER.info("Getting personalized game game data [{}] for user: [{}].", gameId, userId);
         if (!game.isPresent() || !user.isPresent()) {
             return game;
         }

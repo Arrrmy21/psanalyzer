@@ -1,8 +1,11 @@
-package com.onyshchenko.psanalyzer.services;
+package com.onyshchenko.psanalyzer.services.scheduler;
 
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.UrlCategory;
 import com.onyshchenko.psanalyzer.model.User;
+import com.onyshchenko.psanalyzer.services.GameService;
+import com.onyshchenko.psanalyzer.services.UserService;
+import com.onyshchenko.psanalyzer.services.parser.DocumentParseService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -39,17 +42,21 @@ public class ScheduledTasksService {
     private String botToken;
     private int totalPages = 1;
 
-    //    @Scheduled(fixedDelay = 6000000)
+    //        @Scheduled(fixedDelay = 6000000)
     @Scheduled(cron = "0 0 5 * * *", zone = "GMT+2:00")
     public void collectDataAboutGamesByList() {
 
         LocalDateTime startingTime = LocalDateTime.now();
-        LOGGER.info("Entering method [collectMinimalDataAboutGamesScheduledTask].");
+        LOGGER.info("Starting scheduled task for collecting games data.");
 
         collectDataFromSiteByCategory(UrlCategory.ALL_GAMES);
         collectDataFromSiteByCategory(UrlCategory.SALES);
         collectDataFromSiteByCategory(UrlCategory.VR);
         collectDataFromSiteByCategory(UrlCategory.PS5);
+
+        LocalDateTime listDataEndTime = LocalDateTime.now();
+        LOGGER.info("Collecting minimal data about games from list finished in [{}] minutes",
+                Duration.between(startingTime, listDataEndTime).toMinutes());
 
         gettingDetailedInfoAboutGames();
         LocalDateTime finishingTime = LocalDateTime.now();
@@ -59,15 +66,16 @@ public class ScheduledTasksService {
 
     private void collectDataFromSiteByCategory(UrlCategory urlCategory) {
 
-        LOGGER.info("Collecting data from category [{}]", urlCategory.getCategory());
+        LOGGER.debug("Collecting data from category [{}]", urlCategory.getCategory());
         for (int page = 1; page <= totalPages; page++) {
 
-            LOGGER.info("Get all prices form page: [{}].", page);
+            LOGGER.info("Getting all data form page: [{}].", page);
             String url = BASE_URL + urlCategory.getUrl() + page;
 
             Document document = getDataFromUrlWithJsoup(url);
 
             if (document == null) {
+                LOGGER.warn("Received null value instead of document from url: [{}]", url);
                 continue;
             }
             updatePagesNumberInDocument(document);
@@ -78,11 +86,16 @@ public class ScheduledTasksService {
     }
 
     private void updatePagesNumberInDocument(Document document) {
-        int pagesInDocument = document.getElementsByClass("ems-sdk-grid-paginator__page-buttons")
-                .get(0).childNodes().size();
-        String s = document.getElementsByClass("ems-sdk-grid-paginator__page-buttons")
-                .get(0).childNodes().get(pagesInDocument - 1).childNode(0).childNode(0).toString();
-        totalPages = Integer.parseInt(s);
+        try {
+            LOGGER.debug("Updating last page for screening site. Previous page value: [{}].", totalPages);
+            int pagesInDocument = document.getElementsByClass("ems-sdk-grid-paginator__page-buttons")
+                    .get(0).childNodes().size();
+            String s = document.getElementsByClass("ems-sdk-grid-paginator__page-buttons")
+                    .get(0).childNodes().get(pagesInDocument - 1).childNode(0).childNode(0).toString();
+            totalPages = Integer.parseInt(s);
+        } catch (Exception ex) {
+            LOGGER.error("Exception while updating page number during parsing.", ex);
+        }
     }
 
     //        @Scheduled(fixedDelay = 6000000)
@@ -108,22 +121,21 @@ public class ScheduledTasksService {
 
         try {
             LOGGER.info("Getting document from address: [{}]", address);
-
             Document doc = Jsoup.connect(address).get();
             String docTitle = doc.title();
             LOGGER.info("Document received from site with title: [{}]", docTitle);
 
             return doc;
         } catch (Exception ex) {
-            LOGGER.info("Error while getting Document.");
+            LOGGER.error("Error while getting Document.", ex);
             return null;
         }
     }
 
+    //    @Scheduled(fixedDelay = 6000000)
     public void gettingDetailedInfoAboutGames() {
         LOGGER.info("Process of getting detailed info about games STARTED.");
         List<String> urls = gameService.getUrlsOfNotUpdatedGames();
-
         if (urls == null || urls.isEmpty()) {
             LOGGER.info("All games have detailed info.");
             return;
@@ -132,7 +144,6 @@ public class ScheduledTasksService {
 
         for (String url : urls) {
             Document document = getDataFromUrlWithJsoup(BASE_URL + "product/" + url);
-
             if (document == null) {
                 continue;
             }

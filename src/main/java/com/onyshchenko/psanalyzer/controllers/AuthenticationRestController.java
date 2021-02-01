@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,7 +53,7 @@ public class AuthenticationRestController {
             User user = userService.findByUsername(username);
 
             if (user == null) {
-                throw new UsernameNotFoundException("User with username [" + username + "] not found.");
+                return new ResponseEntity<>("User with username [" + username + "] not found.", HttpStatus.BAD_REQUEST);
             }
 
             String token = jwtTokenProvider.createToken(username, user.getRoles());

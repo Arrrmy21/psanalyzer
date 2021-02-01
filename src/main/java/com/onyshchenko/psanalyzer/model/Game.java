@@ -203,5 +203,14 @@ public class Game {
                 ", price='" + price + '\'' +
                 '}';
     }
+
+    public String getUpdatedDate() {
+        return "Game:" +
+                "name= " + getName() + "\n" +
+                "publisher= " + getPublisher() + "\n" +
+                "release date= " + getReleaseDate() + "\n" +
+                "device type= " + getDeviceTypes() + "\n" +
+                "genres= " + getGenres() + ".";
+    }
 }
 

@@ -4,7 +4,7 @@ import com.onyshchenko.psanalyzer.controllers.interfaces.GameControllerIntf;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.services.FilteringUtils;
 import com.onyshchenko.psanalyzer.services.GameService;
-import com.onyshchenko.psanalyzer.services.ScheduledTasksService;
+import com.onyshchenko.psanalyzer.services.scheduler.ScheduledTasksService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,34 +31,36 @@ public class GameController implements GameControllerIntf {
     private ScheduledTasksService scheduledTasksService;
 
     public Optional<Game> getGame(@PathVariable(value = "gameId") long gameId) {
-        LOGGER.info("Getting game by id [{}] from repository.", gameId);
+        LOGGER.info("Get game request. Id: [{}]", gameId);
 
         return gameService.getGame(gameId);
     }
 
     @Override
     public Optional<Game> getPersonalizedGame(long gameId, long userId) {
-        LOGGER.info("Getting PERSONALIZED game by id [{}] from repository.", gameId);
+        LOGGER.info("Get PERSONALIZED game by id request. Id: [{}].", gameId);
 
         return gameService.getPersonalizedGame(gameId, userId);
     }
 
     @Override
     public Page<Game> getGames(int page, int size, String filter) throws ValidationException {
-        LOGGER.info("Getting list of games from repository with params: page=[{}], size=[{}]", page, size);
+        LOGGER.info("Get list of games request. Page=[{}], size=[{}], filter=[{}]", page, size, filter);
 
         return gameService.getListOfGames(PageRequest.of(page, size), filter);
     }
 
     @Override
     public Page<Game> getPersonalizedGames(int page, int size, String filter, long userId) throws ValidationException {
-        LOGGER.info("Getting PERSONALIZED list of games from repository with params: page=[{}], size=[{}]", page, size);
+        LOGGER.info("Get PERSONALIZED list of games request. Params: UserId=[{}], page=[{}], size=[{}], filter=[{}]",
+                userId, page, size, filter);
 
         return gameService.getPersonalizedListOfGames(PageRequest.of(page, size), filter, userId);
     }
 
     @Override
     public ResponseEntity<Object> createGame(Game game) {
+        LOGGER.info("Create game request. Game name: [{}]", game.getName());
         Optional<Game> createdGame = gameService.createGame(game);
         if (createdGame.isPresent()) {
             return new ResponseEntity<>("Game created.", HttpStatus.CREATED);

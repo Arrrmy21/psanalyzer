@@ -1,4 +1,4 @@
-package com.onyshchenko.psanalyzer.services;
+package com.onyshchenko.psanalyzer.services.parser;
 
 import com.onyshchenko.psanalyzer.model.Category;
 import com.onyshchenko.psanalyzer.model.Currency;
@@ -58,7 +58,7 @@ public class DocumentParseService {
                 LOGGER.debug("ReleaseDate for game is empty.");
             }
 
-            DeviceType deviceType = extractDeviceTypeFromGameElemet(element);
+            DeviceType deviceType = extractDeviceTypeFromGameElement(element);
             if (deviceType != null) {
                 gameForUpdating.getDeviceTypes().add(deviceType);
             } else {
@@ -78,17 +78,23 @@ public class DocumentParseService {
             gameForUpdating.setDetailedInfoFilledIn(true);
         } catch (Exception e) {
             exceptionCaptured = true;
-            LOGGER.info("Exception while parsing data from html.");
+            LOGGER.info("Exception while parsing data from html.", e);
         }
 
         gameForUpdating.setErrorWhenFilling(exceptionCaptured);
+        LOGGER.debug("Collected data for updating game: \n{}", gameForUpdating.getUpdatedDate());
         return gameForUpdating;
     }
 
     public List<Game> getInitialInfoAboutGamesFromDocument(Document doc, Category category) {
 
+        LOGGER.info("Starting parsing of document from site with list of games.");
+
         Elements listOfGames = doc.getElementsByClass(
                 "ems-sdk-product-tile-link");
+        if (listOfGames.isEmpty()) {
+            LOGGER.error("Collected 0 elements from document.");
+        }
         List<Game> games = new ArrayList<>();
         JSONParser parser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
         for (Element gameInfoInHtml : listOfGames) {
@@ -101,7 +107,7 @@ public class DocumentParseService {
 
                 Elements checkIfPriceClassExists = gameInfoInHtml.getElementsByClass("price__container");
                 if (checkIfPriceClassExists == null || checkIfPriceClassExists.isEmpty()) {
-                    LOGGER.info("Broken info about game collected. Game name: [{}], id: [{}]", gameName, gameSku);
+                    LOGGER.warn("Broken info about game collected. Game name: [{}], id: [{}]", gameName, gameSku);
                     continue;
                 }
 
@@ -112,11 +118,12 @@ public class DocumentParseService {
 
                 Game createdGame = new Game(gameName, price, gameSku);
                 createdGame.setCategory(category);
+                LOGGER.debug("Adding game [{}] to list of games from document.", gameName);
                 games.add(createdGame);
             } catch (ParseException e) {
-                LOGGER.info("Parsing error.");
+                LOGGER.error("Parsing error of element: \n{}.", gameInfoInHtml);
             } catch (Exception ex) {
-                ex.printStackTrace();
+                LOGGER.error("Unknown exception during document parsing.", ex);
             }
         }
         return games;
@@ -148,7 +155,7 @@ public class DocumentParseService {
                     .replace(" ", "");
             return (int) Double.parseDouble(priceString);
         } catch (Exception ex) {
-            LOGGER.info("Exception during converting current price to int");
+            LOGGER.error("Exception during converting current price to int. Json data: \n{}", json);
             return 0;
         }
     }
@@ -164,13 +171,12 @@ public class DocumentParseService {
                     .replace(" ", "");
             return (int) Double.parseDouble(fluentPrice);
         } catch (Exception ex) {
-            LOGGER.info("Exception in converting of old price from element to int.");
+            LOGGER.info("Exception in converting of old price from element to int. Element data: \n{}", oldPriceElementsList);
             return 0;
         }
     }
 
     private Set<Genre> extractGenresFromGameElement(Element element) {
-
         Set<Genre> genres = new HashSet<>();
         try {
             Element genreElements = element.getElementsByAttributeValueContaining(DATA_QA, "genre-value").get(0);
@@ -184,21 +190,20 @@ public class DocumentParseService {
                 }
             }
         } catch (Exception ex) {
-            LOGGER.info("Exception while getting information about genres.");
+            LOGGER.info("Exception while getting information about GENRES from element: \n{}.", element);
         }
 
         return genres;
     }
 
-    private DeviceType extractDeviceTypeFromGameElemet(Element element) {
+    private DeviceType extractDeviceTypeFromGameElement(Element element) {
         DeviceType deviceType = null;
-
         try {
             String platform = element.getElementsByAttributeValueContaining(DATA_QA, "platform-value")
                     .get(0).childNode(0).toString().replace("\n", "");
             deviceType = DeviceType.of(platform);
         } catch (Exception ex) {
-            LOGGER.info("Exception while getting device type.");
+            LOGGER.warn("Exception while getting DEVICE TYPE for element: \n{}.", element);
         }
         return deviceType;
     }
@@ -210,13 +215,12 @@ public class DocumentParseService {
             publisher = element.getElementsByAttributeValueContaining(DATA_QA, "publisher-value")
                     .get(0).childNode(0).toString().replace("\n", "");
         } catch (Exception ex) {
-            LOGGER.info("Exception while getting information about publisher.");
+            LOGGER.warn("Exception while getting information about publisher from element: \n{}.", element);
         }
         return publisher;
     }
 
     private LocalDate extractReleaseDateFromGameElement(Element element) {
-
         LocalDate releaseDate = null;
         try {
             String stringReleaseDate = element.getElementsByAttributeValueContaining(DATA_QA, "releaseDate-value")
@@ -225,7 +229,7 @@ public class DocumentParseService {
                 releaseDate = LocalDate.parse(stringReleaseDate, DATE_TIME_FORMATTER);
             }
         } catch (Exception ex) {
-            LOGGER.info("Exception while getting information about release Date.");
+            LOGGER.warn("Exception while getting information about RELEASE DATE from element: \n{}.", element);
         }
 
         return releaseDate;
