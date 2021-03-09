@@ -1,13 +1,17 @@
 package com.onyshchenko.psanalyzer.services.scheduler;
 
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.UrlCategory;
 import com.onyshchenko.psanalyzer.model.User;
 import com.onyshchenko.psanalyzer.services.GameService;
 import com.onyshchenko.psanalyzer.services.UserService;
 import com.onyshchenko.psanalyzer.services.parser.DocumentParseService;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,16 +44,16 @@ public class ScheduledTasksService {
             + " /wishlist";
     @Value("${bot.token}")
     private String botToken;
-    private int totalPages = 1;
 
-    //        @Scheduled(fixedDelay = 6000000)
+    //    @Scheduled(fixedDelay = 6000000)
     @Scheduled(cron = "0 0 5 * * *", zone = "GMT+2:00")
     public void collectDataAboutGamesByList() {
 
         LocalDateTime startingTime = LocalDateTime.now();
         LOGGER.info("Starting scheduled task for collecting games data.");
 
-        collectDataFromSiteByCategory(UrlCategory.ALL_GAMES);
+        collectDataFromSiteByCategory(UrlCategory.PS4);
+        collectDataFromSiteByCategory(UrlCategory.ALL_SALES);
         collectDataFromSiteByCategory(UrlCategory.SALES);
         collectDataFromSiteByCategory(UrlCategory.VR);
         collectDataFromSiteByCategory(UrlCategory.PS5);
@@ -58,7 +62,7 @@ public class ScheduledTasksService {
         LOGGER.info("Collecting minimal data about games from list finished in [{}] minutes",
                 Duration.between(startingTime, listDataEndTime).toMinutes());
 
-        gettingDetailedInfoAboutGames();
+        getDetailedInfoAboutAllGames();
         LocalDateTime finishingTime = LocalDateTime.now();
         LOGGER.info("Collecting data about games finished in [{}] minutes",
                 Duration.between(startingTime, finishingTime).toMinutes());
@@ -66,36 +70,57 @@ public class ScheduledTasksService {
 
     private void collectDataFromSiteByCategory(UrlCategory urlCategory) {
 
-        LOGGER.debug("Collecting data from category [{}]", urlCategory.getCategory());
-        for (int page = 1; page <= totalPages; page++) {
+        int page = 1;
+        boolean isLastPage = false;
 
+        do {
             LOGGER.info("Getting all data form page: [{}].", page);
-            String url = BASE_URL + urlCategory.getUrl() + page;
+            String url = BASE_URL + "category/" + urlCategory.getUrl() + "/" + page;
 
             Document document = getDataFromUrlWithJsoup(url);
 
-            if (document == null) {
-                LOGGER.warn("Received null value instead of document from url: [{}]", url);
+            Optional<DocumentContext> documentContext = prepareDocumentContextFromDocument(document);
+            if (!documentContext.isPresent()) {
+                LOGGER.warn("Received null value instead of DocumentContext from url: [{}]", url);
                 continue;
             }
-            updatePagesNumberInDocument(document);
 
-            List<Game> games = documentParseService.getInitialInfoAboutGamesFromDocument(document, urlCategory.getCategory());
+            String size = getDefaultSizeFromPage(page);
+            isLastPage = documentParseService.chekIfTheLastPageOfDocument(documentContext.get(), urlCategory.getUrl(), size);
+
+            List<Game> games = documentParseService
+                    .getInitialInfoAboutGamesFromDocumentContext(documentContext.get(), urlCategory.getUrl(), size);
             gameService.compareCollectedListOfGamesToExisted(games);
-        }
+            page++;
+        } while (!isLastPage);
     }
 
-    private void updatePagesNumberInDocument(Document document) {
-        try {
-            LOGGER.debug("Updating last page for screening site. Previous page value: [{}].", totalPages);
-            int pagesInDocument = document.getElementsByClass("ems-sdk-grid-paginator__page-buttons")
-                    .get(0).childNodes().size();
-            String s = document.getElementsByClass("ems-sdk-grid-paginator__page-buttons")
-                    .get(0).childNodes().get(pagesInDocument - 1).childNode(0).childNode(0).toString();
-            totalPages = Integer.parseInt(s);
-        } catch (Exception ex) {
-            LOGGER.error("Exception while updating page number during parsing.", ex);
+
+    private String getDefaultSizeFromPage(int page) {
+        int defaultPageSize = 24;
+        int offset = (page - 1) * defaultPageSize;
+
+        return offset + ":" + defaultPageSize;
+    }
+
+    private Optional<DocumentContext> prepareDocumentContextFromDocument(Document document) {
+
+        if (document == null) {
+            LOGGER.error("Received null value instead of document from url.");
+            return Optional.empty();
         }
+        Optional<Node> node = document.body().childNodes().stream()
+                .filter(e -> e.toString().contains("__NEXT_DATA__"))
+                .findFirst()
+                .map(e -> e.childNodes().get(0));
+        if (!node.isPresent()) {
+            LOGGER.error("Collected 0 elements from document.");
+            return Optional.empty();
+        }
+        String jsonString = node.get().toString();
+        DocumentContext context = JsonPath.parse(jsonString);
+
+        return Optional.of(context);
     }
 
     //        @Scheduled(fixedDelay = 6000000)
@@ -126,21 +151,23 @@ public class ScheduledTasksService {
             LOGGER.info("Document received from site with title: [{}]", docTitle);
 
             return doc;
+        } catch (HttpStatusException statusException) {
+            LOGGER.error("Status of request: [{}].", statusException.getStatusCode(), statusException);
+            return null;
         } catch (Exception ex) {
             LOGGER.error("Error while getting Document.", ex);
             return null;
         }
     }
 
-    //    @Scheduled(fixedDelay = 6000000)
-    public void gettingDetailedInfoAboutGames() {
+    public void getDetailedInfoAboutAllGames() {
         LOGGER.info("Process of getting detailed info about games STARTED.");
-        List<String> urls = gameService.getUrlsOfNotUpdatedGames();
+        List<String> urls = gameService.getUrlsOfAllGames();
         if (urls == null || urls.isEmpty()) {
-            LOGGER.info("All games have detailed info.");
+            LOGGER.error("No games for updating.");
             return;
         }
-        LOGGER.info("Collected [{}] games which are not fully filled.", urls.size());
+        LOGGER.info("Collected [{}] games for getting detailed info.", urls.size());
 
         for (String url : urls) {
             Document document = getDataFromUrlWithJsoup(BASE_URL + "product/" + url);

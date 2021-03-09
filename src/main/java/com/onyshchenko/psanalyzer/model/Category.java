@@ -5,43 +5,64 @@ import java.util.Map;
 
 public enum Category {
 
-    FULL("Полная версия"),
-    KIT("Комплект"),
-    LEVEL("Уровень"),
-    DLC("Дополнение"),
-    PSN("Игра PSN"),
-    PSVR("Игра PS VR"),
-    MAP("Пакет карт"),
-    THEME("Тема"),
-    DYNTHEME("Динамическая тема"),
-    GAME("Игра"),
-    AVATAR("Аватар"),
-    DEFAULT("Default"),
-    EXCLUSIVE("Exclusive");
+    FULL("FULL_GAME", "Full Game", "Полная версия игры"),
+    PREMIUM("PREMIUM_EDITION", "Premium Edition", "Премиум-издание"),
+    SOUNDTRACK("SOUNDTRACK", null, "Звуковое сопровождение"),
+    GAME_BUNDLE("GAME_BUNDLE", "Game Bundle", "Игровой комплект"),
+    BUNDLE("BUNDLE", "Bundle", "Комплект"),
+    OTHER("OTHER", "Add-on", "Дополнение"),
+    OTHER_PACK("ADD-ON_PACK", "Add-On Pack", "Пакет дополнений"),
+    LEVEL("LEVEL", "Level", "Уровень"),
+    CHARACTER("CHARACTER", "Character", "Персонаж"),
+    MAP("MAP", "Map", "Пакет карт"),
+    SEASON_PASS("SEASON_PASS", "Season Pass", null),
+    VEHICLE("VEHICLE", "Vehicle", "Автомобиль"),
+    DEMO("DEMO", "Demo", "Демо-версия"),
+    ITEM("ITEM", "Item", "Объект"),
+    VIRTUAL_CURRENCY("VIRTUAL_CURRENCY", "Virtual Currency", "Виртуальная валюта"),
+    COSTUME("COSTUME", "COSTUME", "Костюм"),
+    EPISODE("EPISODE", "Episode", "Эпизод"),
+    WEAPONS("WEAPONS", "Weapons", "Оружие");
 
-    private static final Map<String, Category> map = new HashMap<>(values().length, 1);
+    private static final Map<String, Category> ruUaCategoryName = new HashMap<>(values().length, 1);
 
     static {
         for (Category category : values()) {
-            map.put(category.categoryName, category);
+            ruUaCategoryName.put(category.ruUaName, category);
         }
     }
 
-    private final String categoryName;
+    private final String key;
+    private final String originalName;
+    private final String ruUaName;
 
-    Category(String name) {
-        categoryName = name;
+    Category(String key, String originalName, String ruUaName) {
+        this.key = key;
+        this.originalName = originalName;
+        this.ruUaName = ruUaName;
     }
 
-    public String getCategoryName() {
-        return categoryName;
+    public String getCategoryRuUaName() {
+        return ruUaName;
     }
 
-    public static Category of(String categoryName) {
-        Category result = map.get(categoryName);
+    public static Category ofRuUaName(String categoryName) {
+        Category result = ruUaCategoryName.get(categoryName);
         if (result == null) {
             throw new IllegalArgumentException("Invalid category name: " + categoryName);
         }
         return result;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public String getOriginalName() {
+        return originalName;
+    }
+
+    public String getRuUaName() {
+        return ruUaName;
     }
 }

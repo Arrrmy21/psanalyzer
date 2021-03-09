@@ -70,7 +70,8 @@ public class GameService {
     }
 
     private boolean currentGamePriceDiffersThenStored(Game game, Game gameFromDb) {
-        return game.getPrice().getCurrentPrice() != gameFromDb.getPrice().getCurrentPrice();
+        return game.getPrice().getCurrentPrice() != gameFromDb.getPrice().getCurrentPrice() ||
+                game.getPrice().getCurrentPsPlusPrice() != gameFromDb.getPrice().getCurrentPsPlusPrice();
     }
 
     public void saveGameRecordIntoDb(Game game) {
@@ -79,13 +80,14 @@ public class GameService {
             LOGGER.info("Game [{}] saved to DB with id: [{}].", game.getName(), savedGame.getId());
             savePriceChangingHistory(savedGame);
         } catch (Exception ex) {
-            LOGGER.info("Exception during saving game to database", ex);
+            LOGGER.error("Exception during saving game to database", ex);
         }
     }
 
     private void savePriceChangingHistory(Game game) {
         try {
-            gameRepository.saveHistory(game.getId(), game.getPrice().getCurrentPrice(), LocalDate.now());
+            gameRepository.saveHistory(game.getId(), game.getPrice().getCurrentPrice(),
+                    game.getPrice().getCurrentPsPlusPrice(), LocalDate.now());
             LOGGER.info("Saved price history for game [{}]. Game id: [{}]", game.getName(), game.getId());
         } catch (Exception ex) {
             LOGGER.info("Exception during saving price history", ex);
@@ -175,6 +177,10 @@ public class GameService {
 
     public List<String> getUrlsOfNotUpdatedGames() {
         return gameRepository.urlsOfNotUpdatedGames();
+    }
+
+    public List<String> getUrlsOfAllGames() {
+        return gameRepository.urlsOfAllGames();
     }
 
     public long getGameIdByUrl(String url) {

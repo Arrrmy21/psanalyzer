@@ -56,6 +56,7 @@ public class PriceService {
             gameToBeUpdatedOnDB.setCurrentPercentageDiscount(0);
         }
         gameToBeUpdatedOnDB.setPreviousPrice(previousSitePrice);
+        gameToBeUpdatedOnDB.setCurrentPsPlusPrice(gameFromSite.getCurrentPsPlusPrice());
     }
 
     public int evaluateDiscount(int oldPrice, int newPrice) {

@@ -8,36 +8,35 @@ import java.util.Map;
 
 public enum Genre {
 
-    ACTION("Action"),
-    ADVENTURE("Приключения"),
-    ARCADE("Аркада"),
-    EDUCATIONAL("Образовательные"),
-    FAMILY("Семейные"),
-    FIGHTING("Единоборства"),
-    FPS("Боевики"),
-    FITNESS("Фитнес"),
-    HORROR("Ужасы"),
-    MUSIC("Музыка и ритм"),
-    PARTY("Тусовка"),
-    PLATFORMER("Казуальные"),
-    PUZZLE("Пазлы"),
-    RACING("Вождение и гонки"),
-    RPG("Ролевые игры"),
-    SHOOTER("Шутеры"),
-    SIMULATION("Симуляторы"),
-    IMITATION("Имитация"),
-    SPORTS("Спорт"),
-    STRATEGY("Стратегии"),
-    QUEST("Головоломки"),
-    BRAIN_TRAINING("Тренировка мозга"),
-    ADULT("Для взрослых"),
-    UNIQUE("Уникальные");
+    ACTION("ACTION", "Action", "Боевики"),
+    ADVENTURE("ADVENTURE", "Adventure", "Приключения"),
+    ARCADE("ARCADE", "Arcade", "Аркада"),
+    SHOOTER("SHOOTER", "Shooter", "Шутеры"),
+    RPG("ROLE_PLAYING_GAMES", "Role Playing Games", "Ролевые игры"),
+    CASUAL("CASUAL", "Casual", "Казуальные"),
+    UNIQUE("UNIQUE", "Unique", "Уникальные"),
+    PUZZLE("PUZZLE", "Puzzle", "Головоломки"),
+    SIMULATION("SIMULATION", "Simulation", "Имитация"),
+    HORROR("HORROR", "Horror", "Ужасы"),
+    RACING("RACING", "Driving/Racing", "Вождение и гонки"),
+    SPORTS("SPORTS", "Sport", "Спорт"),
+    FIGHTING("FIGHTING", "Fighting", "Единоборства"),
+    STRATEGY("STRATEGY", "Strategy", "Стратегии"),
+    FAMILY("FAMILY", "Family", "Семейные"),
+    MUSIC("MUSIC/RHYTHM", "Music/Rhythm", "Музыка и ритм"),
+    PARTY("PARTY", "Party", "Тусовка"),
+    SIMULATOR("SIMULATOR", "Simulator", "Симуляторы"),
+    EDUCATIONAL("EDUCATIONAL", "Educational", "Образовательные"),
+    BRAIN_TRAINING("BRAIN_TRAINING", null, "Тренировка мозга"),
+    FITNESS("FITNESS", null, "Фитнес"),
+    ADULT("ADULT", null, "Для взрослых"),
+    QUIZ("QUIZ", null, "Викторины");
 
-    private static Map<String, Genre> map = new HashMap<>(values().length, 1);
+    private static Map<String, Genre> ruUaGenreNameMap = new HashMap<>(values().length, 1);
 
     static {
         for (Genre genre : values()) {
-            map.put(genre.genreName, genre);
+            ruUaGenreNameMap.put(genre.genreRuUaName, genre);
         }
     }
 
@@ -47,27 +46,34 @@ public enum Genre {
     private Long id;
 
     @Column(name = "genre_name")
-    private final String genreName;
+    private final String genreRuUaName;
+    private final String key;
+    private final String originalName;
 
-    Genre(Long id, String genreName) {
-        this.id = id;
-        this.genreName = genreName;
+    Genre(String key, String originalName, String genreRuUaName) {
+        this.key = key;
+        this.originalName = originalName;
+        this.genreRuUaName = genreRuUaName;
     }
 
-    Genre(String genreName) {
-        this.genreName = genreName;
-    }
-
-    public String getGenreName() {
-        return genreName;
+    public String getGenreRuUaName() {
+        return genreRuUaName;
     }
 
     public Long getId() {
         return id;
     }
 
-    public static Genre of(String genreName) {
-        Genre result = map.get(genreName);
+    public String getKey() {
+        return key;
+    }
+
+    public String getOriginalName() {
+        return originalName;
+    }
+
+    public static Genre ofRuUaName(String genreName) {
+        Genre result = ruUaGenreNameMap.get(genreName);
         if (result == null) {
             throw new IllegalArgumentException("Invalid genre name [" + genreName + "]");
         }

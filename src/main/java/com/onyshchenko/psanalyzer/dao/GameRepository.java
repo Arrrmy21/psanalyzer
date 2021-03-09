@@ -25,11 +25,14 @@ public interface GameRepository extends JpaRepository<Game, Long> {
     @Query("select url from Game games where games.detailedInfoFilledIn = false")
     List<String> urlsOfNotUpdatedGames();
 
+    @Query("select url from Game games")
+    List<String> urlsOfAllGames();
+
     @Query("select id from Game games where games.url = :url")
     Long getGameIdByUrl(@Param("url") String url);
 
     @Modifying
     @Transactional
-    @Query(value = "insert into Games_history (date_of_change, game_id, game_price) values (:date, :id, :price)", nativeQuery = true)
-    void saveHistory(@Param("id") long id, @Param("price") int price, @Param("date") LocalDate date);
+    @Query(value = "insert into Games_history (date_of_change, game_id, game_price, psplus_price) values (:date, :id, :price, :psPlusPrice)", nativeQuery = true)
+    void saveHistory(@Param("id") long id, @Param("price") int price, @Param("psPlusPrice") int psPlusPrice, @Param("date") LocalDate date);
 }

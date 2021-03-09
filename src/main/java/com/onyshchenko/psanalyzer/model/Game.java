@@ -76,6 +76,10 @@ public class Game {
 
     private Boolean isInWl;
 
+    private Boolean isExclusive;
+
+    private Boolean isEaAccess = false;
+
     public Game() {
     }
 
@@ -116,6 +120,7 @@ public class Game {
 
     public void setName(String name) {
         this.name = name;
+        this.searchName = name.toLowerCase();
     }
 
     public String getSearchName() {
@@ -168,14 +173,11 @@ public class Game {
 
     public void setPublisher(String publisher) {
         this.publisher = publisher;
+        this.searchPublisher = publisher.toLowerCase();
     }
 
     public String getSearchPublisher() {
         return searchPublisher;
-    }
-
-    public void setSearchPublisher(String searchPublisher) {
-        this.searchPublisher = searchPublisher;
     }
 
     public Boolean isErrorWhenFilling() {
@@ -192,6 +194,22 @@ public class Game {
 
     public void setInWl(Boolean inWl) {
         isInWl = inWl;
+    }
+
+    public Boolean getExclusive() {
+        return isExclusive;
+    }
+
+    public void setExclusive(Boolean exclusive) {
+        isExclusive = exclusive;
+    }
+
+    public Boolean getEaAccess() {
+        return isEaAccess;
+    }
+
+    public void setEaAccess(Boolean eaAccess) {
+        isEaAccess = eaAccess;
     }
 
     @Override

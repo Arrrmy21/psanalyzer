@@ -1,16 +1,16 @@
 package com.onyshchenko.psanalyzer.services.parser;
 
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import com.onyshchenko.psanalyzer.model.Category;
 import com.onyshchenko.psanalyzer.model.Currency;
 import com.onyshchenko.psanalyzer.model.DeviceType;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.Genre;
 import com.onyshchenko.psanalyzer.model.Price;
-import net.minidev.json.JSONObject;
+import net.minidev.json.JSONArray;
 import net.minidev.json.parser.JSONParser;
-import net.minidev.json.parser.ParseException;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,9 +20,13 @@ import org.jsoup.nodes.Document;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class DocumentParseService {
@@ -30,9 +34,16 @@ public class DocumentParseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentParseService.class);
 
     private static final String DATA_QA = "data-qa";
-    private static final String OLD_PRICE_ELEMENT_DATA = "price price--strikethrough psw-m-l-xs";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
-            .ofPattern("d/M/yyyy");
+            .ofPattern("d.M.yyyy");
+    private JSONParser parser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
+
+    private static final String CATEGORY_GRID_FORMATTER = "$.props.apolloState.CategoryGrid:%s:ru-ua:%s.products";
+
+    private static final String DETAILED_INFO_FORMATTER = "$.props.apolloState.['Product:%s:ru-ua']";
+    private static final String PRICE_INFO_FORMATTER = "$.props.apolloState.['$Product:%s:ru-ua.price']";
+
+    private static final String PAGE_INFO_FORMATTER = "$.props.apolloState.['$CategoryGrid:%s:ru-ua:%s.pageInfo']";
 
     public Game getDetailedGameInfoFromDocument(Document document) {
         LOGGER.info("Parsing detailed game info from document.");
@@ -41,10 +52,9 @@ public class DocumentParseService {
         try {
             Element element = document.getElementsByClass("psw-grid-x psw-fill-x psw-l-space-y-m psw-grid-margin-x psw-m-y-0").get(0);
 
-            String publisher = extractPublisherFromGmeElement(element);
+            String publisher = extractPublisherFromGameElement(element);
             if (publisher != null && !publisher.isEmpty()) {
                 gameForUpdating.setPublisher(publisher);
-                gameForUpdating.setSearchPublisher(publisher.toLowerCase());
             } else {
                 exceptionCaptured = true;
                 LOGGER.debug("Publisher for game is empty.");
@@ -56,14 +66,6 @@ public class DocumentParseService {
             } else {
                 exceptionCaptured = true;
                 LOGGER.debug("ReleaseDate for game is empty.");
-            }
-
-            DeviceType deviceType = extractDeviceTypeFromGameElement(element);
-            if (deviceType != null) {
-                gameForUpdating.getDeviceTypes().add(deviceType);
-            } else {
-                exceptionCaptured = true;
-                LOGGER.debug("DeviceType for game is empty.");
             }
 
             Set<Genre> gameGenres = extractGenresFromGameElement(element);
@@ -83,96 +85,135 @@ public class DocumentParseService {
 
         gameForUpdating.setErrorWhenFilling(exceptionCaptured);
         LOGGER.debug("Collected data for updating game: \n{}", gameForUpdating.getUpdatedDate());
+
         return gameForUpdating;
     }
 
-    public List<Game> getInitialInfoAboutGamesFromDocument(Document doc, Category category) {
+    public List<Game> getInitialInfoAboutGamesFromDocumentContext(DocumentContext context, String category, String size) {
 
-        LOGGER.info("Starting parsing of document from site with list of games.");
+        try {
+            LOGGER.info("Starting parsing of Document Context with list of games.");
 
-        Elements listOfGames = doc.getElementsByClass(
-                "ems-sdk-product-tile-link");
-        if (listOfGames.isEmpty()) {
-            LOGGER.error("Collected 0 elements from document.");
+            List<String> urls = ((JSONArray) context
+                    .read(String.format(CATEGORY_GRID_FORMATTER, category, size)))
+                    .stream()
+                    .map(el -> ((Map<?, ?>) el).get("id").toString())
+                    .map(s -> s.split(":")).map(s -> s[1])
+                    .collect(Collectors.toList());
+
+            List<Game> games = new ArrayList<>();
+            for (String gameUrl : urls) {
+                extractGameFromContextAndAddToList(games, context, gameUrl);
+            }
+
+            return games;
+        } catch (Exception e) {
+            LOGGER.error("Error in getInitialInfoAboutGamesFromDocumentContext", e);
+            return Collections.emptyList();
         }
-        List<Game> games = new ArrayList<>();
-        JSONParser parser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
-        for (Element gameInfoInHtml : listOfGames) {
-            try {
+    }
 
-                JSONObject json = (JSONObject) parser.parse(gameInfoInHtml.attributes().get("data-telemetry-meta"));
+    private void extractGameFromContextAndAddToList(List<Game> games, DocumentContext context, String gameUrl) {
 
-                String gameName = json.getAsString("name");
-                String gameSku = json.getAsString("id");
+        try {
+            LinkedHashMap<?, ?> gameInfo = context.read(String.format(DETAILED_INFO_FORMATTER, gameUrl));
 
-                Elements checkIfPriceClassExists = gameInfoInHtml.getElementsByClass("price__container");
-                if (checkIfPriceClassExists == null || checkIfPriceClassExists.isEmpty()) {
-                    LOGGER.warn("Broken info about game collected. Game name: [{}], id: [{}]", gameName, gameSku);
-                    continue;
+            String url = JsonPath.parse(gameInfo).read("id");
+            String name = JsonPath.parse(gameInfo).read("name");
+            String gameClassification = JsonPath.parse(gameInfo).read("localizedStoreDisplayClassification");
+
+            Game game = new Game();
+            game.setUrl(url);
+            game.setName(name);
+
+            List<String> platforms = ((JSONArray) ((Map<?, ?>) JsonPath.parse(gameInfo)
+                    .read("platforms")).get("json")).stream()
+                    .map(Object::toString).collect(Collectors.toList());
+            Set<DeviceType> deviceTypes = platforms.stream()
+                    .map(DeviceType::of).collect(Collectors.toSet());
+            game.setDeviceTypes(deviceTypes);
+
+            game.setCategory(Category.ofRuUaName(gameClassification));
+
+            DocumentContext priceContext = JsonPath.parse((Map<?, ?>) context
+                    .read(String.format(PRICE_INFO_FORMATTER, gameUrl)));
+
+            game.setPrice(getPriceBasedOnContext(priceContext));
+
+            boolean isExclusive = priceContext.read("isExclusive");
+            game.setExclusive(isExclusive);
+
+            fulfillGameInfoWithSubscriptionsInfo(game, priceContext);
+
+            games.add(game);
+        } catch (Exception ex) {
+            LOGGER.error("Exception occurred in method extractGameFromContextAndAddToList().", ex);
+        }
+    }
+
+    private void fulfillGameInfoWithSubscriptionsInfo(Game game, DocumentContext priceContext) {
+
+        Map<?, ?> subscriptionContext = priceContext.read("upsellServiceBranding");
+
+        if (subscriptionContext == null || ((List<?>) JsonPath.parse(subscriptionContext).read("json")).isEmpty()) {
+            return;
+        }
+
+        List<String> subscriptions = JsonPath.parse(subscriptionContext).read("json");
+
+        for (String subscriptionCategory : subscriptions) {
+
+            if (subscriptionCategory.equalsIgnoreCase("EA_ACCESS")) {
+                game.setEaAccess(true);
+            } else if (subscriptionCategory.equalsIgnoreCase("PS_PLUS") && game.getPrice() != null) {
+                String psPlusUpsellText = priceContext.read("upsellText").toString();
+                if (psPlusUpsellText.contains("Сэкономьте еще ")) {
+                    String percentageValue = psPlusUpsellText.replace("Сэкономьте еще ", "")
+                            .replace("\u00A0%", "");
+                    int discountPercent = Integer.parseInt(percentageValue);
+
+                    Price currentPrice = game.getPrice();
+
+                    game.getPrice().setCurrentPsPlusPrice(currentPrice.getCurrentPrice() * (100 - discountPercent) / 100);
                 }
-
-                int currentPrice = getPreviousPriceFromJson(json);
-                int previousPrice = getOldPriceFromElementIfExist(gameInfoInHtml.getElementsByClass(OLD_PRICE_ELEMENT_DATA));
-                Currency currency = Currency.UAH;
-                Price price = preparePriceFromValues(currentPrice, previousPrice, currency);
-
-                Game createdGame = new Game(gameName, price, gameSku);
-                createdGame.setCategory(category);
-                LOGGER.debug("Adding game [{}] to list of games from document.", gameName);
-                games.add(createdGame);
-            } catch (ParseException e) {
-                LOGGER.error("Parsing error of element: \n{}.", gameInfoInHtml);
-            } catch (Exception ex) {
-                LOGGER.error("Unknown exception during document parsing.", ex);
             }
+
         }
-        return games;
     }
 
-    private Price preparePriceFromValues(int currentPrice, int previousPrice, Currency currency) {
-        if (previousPrice != 0) {
-            return new Price(currentPrice, previousPrice, currency);
+    private Price getPriceBasedOnContext(DocumentContext priceContext) {
+
+        String basePrice = priceContext.read("basePrice");
+        String discountedPrice = priceContext.read("discountedPrice");
+
+        boolean isFreeGame = priceContext.read("isFree");
+        if (isFreeGame) {
+            return new Price();
+        } else if (basePrice.contains("Недоступно") && discountedPrice.contains("Недоступно")) {
+            LOGGER.info("Game is not available for purchase.");
+            return null;
         } else {
-            if (currentPrice == 0) {
-                return new Price();
-            } else {
-                return new Price(currentPrice, currency);
-            }
+            int basePriceInt = convertStringPriceValueToInt(basePrice);
+            int discountedPriceInt = convertStringPriceValueToInt(discountedPrice);
+
+            return new Price(discountedPriceInt, basePriceInt, Currency.UAH);
         }
     }
 
-    private int getPreviousPriceFromJson(JSONObject json) {
-        String currentGamePriceString = json.getAsString("price");
+    private int convertStringPriceValueToInt(String priceValue) {
+        String fluentBasePrice = priceValue.substring(0, priceValue.length() - 4)
+                .replace(" ", "");
 
-        if (currentGamePriceString.equalsIgnoreCase("Входит в подписку")
-                || currentGamePriceString.equalsIgnoreCase("бесплатно")) {
-            //TODO: Add psplus & eagames subscriptions.
-            return 0;
-        }
-
-        try {
-            String priceString = currentGamePriceString.substring(0, currentGamePriceString.length() - 4)
-                    .replace(" ", "");
-            return (int) Double.parseDouble(priceString);
-        } catch (Exception ex) {
-            LOGGER.error("Exception during converting current price to int. Json data: \n{}", json);
-            return 0;
-        }
+        return (int) Double.parseDouble(fluentBasePrice);
     }
 
-    private int getOldPriceFromElementIfExist(Elements oldPriceElementsList) {
+    public boolean chekIfTheLastPageOfDocument(DocumentContext context, String category, String size) {
 
-        if (oldPriceElementsList.isEmpty()) {
-            return 0;
-        }
         try {
-            String previousPrice = oldPriceElementsList.get(0).childNode(0).toString();
-            String fluentPrice = previousPrice.substring(1, previousPrice.length() - 4)
-                    .replace(" ", "");
-            return (int) Double.parseDouble(fluentPrice);
+            return (Boolean) ((Map<?, ?>) context.read(String.format(PAGE_INFO_FORMATTER, category, size))).get("isLast");
         } catch (Exception ex) {
-            LOGGER.info("Exception in converting of old price from element to int. Element data: \n{}", oldPriceElementsList);
-            return 0;
+            LOGGER.error("Exception on checking on last page.", ex);
+            return true;
         }
     }
 
@@ -186,30 +227,20 @@ public class DocumentParseService {
             for (String genre : stringGenres) {
                 if (Character.isWhitespace(genre.charAt(0))) {
                     String cutGenre = genre.replaceFirst(" ", "");
-                    genres.add(Genre.of(cutGenre));
+                    genres.add(Genre.ofRuUaName(cutGenre));
+                } else {
+                    genres.add(Genre.ofRuUaName(genre));
                 }
+
             }
         } catch (Exception ex) {
-            LOGGER.info("Exception while getting information about GENRES from element: \n{}.", element);
+            LOGGER.warn("Exception while getting information about GENRES from element: \n{}.", element);
         }
 
         return genres;
     }
 
-    private DeviceType extractDeviceTypeFromGameElement(Element element) {
-        DeviceType deviceType = null;
-        try {
-            String platform = element.getElementsByAttributeValueContaining(DATA_QA, "platform-value")
-                    .get(0).childNode(0).toString().replace("\n", "");
-            deviceType = DeviceType.of(platform);
-        } catch (Exception ex) {
-            LOGGER.warn("Exception while getting DEVICE TYPE for element: \n{}.", element);
-        }
-        return deviceType;
-    }
-
-
-    private String extractPublisherFromGmeElement(Element element) {
+    private String extractPublisherFromGameElement(Element element) {
         String publisher = null;
         try {
             publisher = element.getElementsByAttributeValueContaining(DATA_QA, "publisher-value")

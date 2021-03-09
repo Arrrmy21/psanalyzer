@@ -46,6 +46,8 @@ public class Price {
     private Currency currency;
     @Column(name = "price_changed")
     private boolean priceChanged = false;
+    @Column(name = "psplusPrice")
+    private int currentPsPlusPrice;
 
     public Price() {
         this.currentPrice = 0;
@@ -58,6 +60,7 @@ public class Price {
         this.currentDiscount = 0;
         this.currentPercentageDiscount = 0;
         this.highestPercentageDiscount = 0;
+        this.currentPsPlusPrice = 0;
     }
 
     public Price(int currentPrice, Currency currency) {
@@ -67,6 +70,7 @@ public class Price {
         this.currency = currency;
         this.highestPrice = currentPrice;
         this.previousPrice = currentPrice;
+        this.currentPsPlusPrice = currentPrice;
     }
 
     public Price(@NotNull int currentPrice, int previousPrice, Currency currency) {
@@ -79,6 +83,7 @@ public class Price {
         this.highestDiscount = currentDiscount;
         this.currentPercentageDiscount = evaluatePercentageDiscount(previousPrice, currentPrice);
         this.highestPercentageDiscount = currentPercentageDiscount;
+        this.currentPsPlusPrice = currentPrice;
         this.currency = currency;
     }
 
@@ -192,5 +197,13 @@ public class Price {
 
     public void setPriceChanged(boolean priceChanged) {
         this.priceChanged = priceChanged;
+    }
+
+    public int getCurrentPsPlusPrice() {
+        return currentPsPlusPrice;
+    }
+
+    public void setCurrentPsPlusPrice(int currentPsPlusPrice) {
+        this.currentPsPlusPrice = currentPsPlusPrice;
     }
 }
