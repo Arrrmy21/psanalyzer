@@ -2,6 +2,7 @@ package com.onyshchenko.psanalyzer.services.scheduler;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import com.onyshchenko.psanalyzer.exception.ForbiddenRequestException;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.UrlCategory;
 import com.onyshchenko.psanalyzer.model.User;
@@ -52,23 +53,30 @@ public class ScheduledTasksService {
         LocalDateTime startingTime = LocalDateTime.now();
         LOGGER.info("Starting scheduled task for collecting games data.");
 
-        collectDataFromSiteByCategory(UrlCategory.PS4);
-        collectDataFromSiteByCategory(UrlCategory.ALL_SALES);
-        collectDataFromSiteByCategory(UrlCategory.SALES);
-        collectDataFromSiteByCategory(UrlCategory.VR);
-        collectDataFromSiteByCategory(UrlCategory.PS5);
-
+        try {
+            collectDataFromSiteByCategory(UrlCategory.PS4);
+            collectDataFromSiteByCategory(UrlCategory.ALL_SALES);
+            collectDataFromSiteByCategory(UrlCategory.SALES);
+            collectDataFromSiteByCategory(UrlCategory.VR);
+            collectDataFromSiteByCategory(UrlCategory.PS5);
+        } catch (ForbiddenRequestException exception) {
+            LOGGER.error("Forbidden exception captured.", exception);
+        }
         LocalDateTime listDataEndTime = LocalDateTime.now();
         LOGGER.info("Collecting minimal data about games from list finished in [{}] minutes",
                 Duration.between(startingTime, listDataEndTime).toMinutes());
 
-        getDetailedInfoAboutAllGames();
+        try {
+            getDetailedInfoAboutAllGames();
+        } catch (ForbiddenRequestException exception) {
+            LOGGER.error("Forbidden exception captured.", exception);
+        }
         LocalDateTime finishingTime = LocalDateTime.now();
         LOGGER.info("Collecting data about games finished in [{}] minutes",
                 Duration.between(startingTime, finishingTime).toMinutes());
     }
 
-    private void collectDataFromSiteByCategory(UrlCategory urlCategory) {
+    private void collectDataFromSiteByCategory(UrlCategory urlCategory) throws ForbiddenRequestException {
 
         int page = 1;
         boolean isLastPage = false;
@@ -142,7 +150,7 @@ public class ScheduledTasksService {
         }
     }
 
-    public Document getDataFromUrlWithJsoup(String address) {
+    public Document getDataFromUrlWithJsoup(String address) throws ForbiddenRequestException {
 
         try {
             LOGGER.info("Getting document from address: [{}]", address);
@@ -153,6 +161,9 @@ public class ScheduledTasksService {
             return doc;
         } catch (HttpStatusException statusException) {
             LOGGER.error("Status of request: [{}].", statusException.getStatusCode(), statusException);
+            if (statusException.getStatusCode() == 403) {
+                throw new ForbiddenRequestException("Request forbidden from host side.", 403, address);
+            }
             return null;
         } catch (Exception ex) {
             LOGGER.error("Error while getting Document.", ex);
@@ -160,7 +171,7 @@ public class ScheduledTasksService {
         }
     }
 
-    public void getDetailedInfoAboutAllGames() {
+    public void getDetailedInfoAboutAllGames() throws ForbiddenRequestException {
         LOGGER.info("Process of getting detailed info about games STARTED.");
         List<String> urls = gameService.getUrlsOfAllGames();
         if (urls == null || urls.isEmpty()) {
