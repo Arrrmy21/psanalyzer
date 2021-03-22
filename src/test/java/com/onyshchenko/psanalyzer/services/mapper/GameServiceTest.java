@@ -37,6 +37,7 @@ class GameServiceTest {
 
     private static final long GAME_ID = 123;
     private static final String GAME_NAME = "Game-Name-1";
+    private static final String GAME_URL = "game-url-123";
 
     @Test
     final void checkGamePriceUpdatedTest() {
@@ -44,7 +45,7 @@ class GameServiceTest {
         Game gameFromDb = getGame(getPriceFromDb());
         assertEquals(150, gameFromDb.getPrice().getCurrentPrice());
 
-        when(gameRepository.findByName(GAME_NAME)).thenReturn(Optional.of(gameFromDb));
+        when(gameRepository.findByNameAndUrl(GAME_NAME, GAME_URL)).thenReturn(Optional.of(gameFromDb));
         when(gameRepository.save(any())).thenReturn(gameFromDb);
 
         doAnswer(invocation -> {
@@ -72,6 +73,7 @@ class GameServiceTest {
         Game game = new Game();
         game.setId(GAME_ID);
         game.setName(GAME_NAME);
+        game.setUrl(GAME_URL);
         game.setPrice(price);
 
         return game;

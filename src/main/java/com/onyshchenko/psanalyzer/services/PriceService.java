@@ -14,6 +14,11 @@ public class PriceService {
 
     public void updatePriceComparingWithExisting(Price gameFromSite, Price gameToBeUpdatedOnDB) {
 
+        if (!gameFromSite.isAvailable()) {
+            gameToBeUpdatedOnDB.setAvailable(false);
+            return;
+        }
+
         int actualPrice = gameFromSite.getCurrentPrice();
         int previousSitePrice = gameFromSite.getPreviousPrice();
 
@@ -57,6 +62,14 @@ public class PriceService {
         }
         gameToBeUpdatedOnDB.setPreviousPrice(previousSitePrice);
         gameToBeUpdatedOnDB.setCurrentPsPlusPrice(gameFromSite.getCurrentPsPlusPrice());
+
+        if (!gameToBeUpdatedOnDB.isAvailable()) {
+            gameToBeUpdatedOnDB.setAvailable(true);
+            gameToBeUpdatedOnDB.setLowestPrice(gameToBeUpdatedOnDB.getCurrentPrice());
+            gameToBeUpdatedOnDB.setHighestPrice(gameToBeUpdatedOnDB.getCurrentPrice());
+            gameToBeUpdatedOnDB.calculateDiscount();
+            gameToBeUpdatedOnDB.calculatePercentageDiscount();
+        }
     }
 
     public int evaluateDiscount(int oldPrice, int newPrice) {

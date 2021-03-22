@@ -18,10 +18,9 @@ public class Price {
 
     @Id
     @GeneratedValue(generator = "system-uuid")
-    @GenericGenerator(name = "system-uuid", strategy = "uuid")
+    @GenericGenerator(name = "system-uuid", strategy = "uuid2")
     @Column(name = "id")
     private String id;
-    @NotNull
     @Column(name = "currentPrice")
     private int currentPrice;
     @Column(name = "previousPrice")
@@ -48,6 +47,8 @@ public class Price {
     private boolean priceChanged = false;
     @Column(name = "psplusPrice")
     private int currentPsPlusPrice;
+    @Column(name = "isAvailable")
+    private boolean isAvailable = true;
 
     public Price() {
         this.currentPrice = 0;
@@ -81,10 +82,15 @@ public class Price {
         this.lowestPrice = currentPrice;
         this.currentDiscount = previousPrice - currentPrice;
         this.highestDiscount = currentDiscount;
-        this.currentPercentageDiscount = evaluatePercentageDiscount(previousPrice, currentPrice);
+        calculatePercentageDiscount();
         this.highestPercentageDiscount = currentPercentageDiscount;
         this.currentPsPlusPrice = currentPrice;
         this.currency = currency;
+    }
+
+    public Price inNotAvailable() {
+        this.isAvailable = false;
+        return this;
     }
 
     public String getId() {
@@ -187,8 +193,8 @@ public class Price {
         return currentDiscount != 0;
     }
 
-    private int evaluatePercentageDiscount(int oldPrice, int newPrice) {
-        return (100 - newPrice * 100 / oldPrice);
+    public void calculatePercentageDiscount() {
+        this.currentPercentageDiscount = (100 - getCurrentPrice() * 100 / getPreviousPrice());
     }
 
     public boolean isPriceChanged() {
@@ -205,5 +211,17 @@ public class Price {
 
     public void setCurrentPsPlusPrice(int currentPsPlusPrice) {
         this.currentPsPlusPrice = currentPsPlusPrice;
+    }
+
+    public boolean isAvailable() {
+        return isAvailable;
+    }
+
+    public void setAvailable(boolean available) {
+        isAvailable = available;
+    }
+
+    public void calculateDiscount() {
+        this.currentDiscount = getPreviousPrice() - getCurrentPrice();
     }
 }

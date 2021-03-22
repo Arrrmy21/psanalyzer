@@ -9,7 +9,6 @@ import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.Genre;
 import com.onyshchenko.psanalyzer.model.Price;
 import net.minidev.json.JSONArray;
-import net.minidev.json.parser.JSONParser;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +35,6 @@ public class DocumentParseService {
     private static final String DATA_QA = "data-qa";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
             .ofPattern("d.M.yyyy");
-    private JSONParser parser = new JSONParser(JSONParser.DEFAULT_PERMISSIVE_MODE);
-
     private static final String CATEGORY_GRID_FORMATTER = "$.props.apolloState.CategoryGrid:%s:ru-ua:%s.products";
 
     private static final String DETAILED_INFO_FORMATTER = "$.props.apolloState.['Product:%s:ru-ua']";
@@ -191,7 +188,7 @@ public class DocumentParseService {
             return new Price();
         } else if (basePrice.contains("Недоступно") && discountedPrice.contains("Недоступно")) {
             LOGGER.info("Game is not available for purchase.");
-            return null;
+            return new Price().inNotAvailable();
         } else {
             int basePriceInt = convertStringPriceValueToInt(basePrice);
             int discountedPriceInt = convertStringPriceValueToInt(discountedPrice);

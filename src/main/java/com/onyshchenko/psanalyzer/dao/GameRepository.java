@@ -22,6 +22,8 @@ public interface GameRepository extends JpaRepository<Game, Long> {
 
     Optional<Game> findByName(String name);
 
+    Optional<Game> findByNameAndUrl(String name, String url);
+
     @Query("select url from Game games where games.detailedInfoFilledIn = false")
     List<String> urlsOfNotUpdatedGames();
 

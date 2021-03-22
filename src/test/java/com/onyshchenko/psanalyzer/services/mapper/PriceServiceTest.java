@@ -102,6 +102,42 @@ class PriceServiceTest {
         assertEquals(120, priceFromDb.getLowestPrice());
     }
 
+    @Test
+    void verifyGameIsUnavailableForPurchaseAfterUpdate() {
+
+        Price priceFromDb = getPriceFromDbWithDiscount();
+        Price newPriceFromSite = getUnavailablePrice();
+
+        assertTrue(priceFromDb.isAvailable());
+
+        priceService.updatePriceComparingWithExisting(newPriceFromSite, priceFromDb);
+
+        assertFalse(priceFromDb.isAvailable());
+    }
+
+    @Test
+    void verifyGameIsAvailableForPurchaseAfterUpdate() {
+
+        Price priceFromDb = getUnavailablePrice();
+        Price newPriceFromSite = getPriceFromDbWithDiscount();
+
+        assertFalse(priceFromDb.isAvailable());
+
+        priceService.updatePriceComparingWithExisting(newPriceFromSite, priceFromDb);
+
+        assertEquals(120, priceFromDb.getCurrentPrice());
+        assertEquals(PREVIOUS_SITE_PRICE, priceFromDb.getPreviousPrice());
+        assertEquals(30, priceFromDb.getCurrentDiscount());
+        assertEquals(20, priceFromDb.getCurrentPercentageDiscount());
+        assertEquals(120, priceFromDb.getLowestPrice());
+        assertTrue(priceFromDb.isAvailable());
+
+    }
+
+    private Price getUnavailablePrice() {
+        return new Price().inNotAvailable();
+    }
+
     private Price getNewPriceFromSite() {
         return new Price(CURRENT_SITE_PRICE, PREVIOUS_SITE_PRICE, Currency.UAH);
     }

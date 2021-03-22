@@ -15,7 +15,7 @@ public enum Category {
     LEVEL("LEVEL", "Level", "Уровень"),
     CHARACTER("CHARACTER", "Character", "Персонаж"),
     MAP("MAP", "Map", "Пакет карт"),
-    SEASON_PASS("SEASON_PASS", "Season Pass", null),
+    SEASON_PASS("SEASON_PASS", "Season Pass", "Сезонный пропуск"),
     VEHICLE("VEHICLE", "Vehicle", "Автомобиль"),
     DEMO("DEMO", "Demo", "Демо-версия"),
     ITEM("ITEM", "Item", "Объект"),

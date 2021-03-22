@@ -3,6 +3,7 @@ package com.onyshchenko.psanalyzer.services;
 import com.onyshchenko.psanalyzer.dao.GameRepository;
 import com.onyshchenko.psanalyzer.dao.UserRepository;
 import com.onyshchenko.psanalyzer.model.Game;
+import com.onyshchenko.psanalyzer.model.Price;
 import com.onyshchenko.psanalyzer.model.RequestFilters;
 import com.onyshchenko.psanalyzer.model.User;
 import com.onyshchenko.psanalyzer.services.mapper.GameMapper;
@@ -41,8 +42,8 @@ public class GameService {
     @Autowired
     private GameMapper gameMapper;
 
-    public Optional<Game> findGameByName(String name) {
-        return gameRepository.findByName(name);
+    public Optional<Game> findSameGameInDb(Game game) {
+        return gameRepository.findByNameAndUrl(game.getName(), game.getUrl());
     }
 
     public void compareCollectedListOfGamesToExisted(List<Game> games) {
@@ -53,13 +54,13 @@ public class GameService {
         }
         for (Game game : games) {
             LOGGER.info("Checking game record for name: [{}].", game.getName());
-            Optional<Game> gameFromDb = findGameByName(game.getName());
+            Optional<Game> gameFromDb = findSameGameInDb(game);
 
             if (!gameFromDb.isPresent()) {
                 LOGGER.info("Saving game to DB with name: [{}].", game.getName());
                 saveGameRecordIntoDb(game);
             } else {
-                if (currentGamePriceDiffersThenStored(game, gameFromDb.get())) {
+                if (currentGamePriceDiffersThenStored(game.getPrice(), gameFromDb.get().getPrice())) {
                     LOGGER.info("Price of game in DB differs from site. Updating price for game: [{}]", game.getName());
                     priceService.updatePriceComparingWithExisting(game.getPrice(), gameFromDb.get().getPrice());
                     saveGameRecordIntoDb(gameFromDb.get());
@@ -69,9 +70,15 @@ public class GameService {
         }
     }
 
-    private boolean currentGamePriceDiffersThenStored(Game game, Game gameFromDb) {
-        return game.getPrice().getCurrentPrice() != gameFromDb.getPrice().getCurrentPrice() ||
-                game.getPrice().getCurrentPsPlusPrice() != gameFromDb.getPrice().getCurrentPsPlusPrice();
+    private boolean currentGamePriceDiffersThenStored(Price gamePrice, Price gameFromDbPrice) {
+        if (gamePrice.isAvailable() != gameFromDbPrice.isAvailable()) {
+            return true;
+        } else if (!gamePrice.isAvailable() && !gameFromDbPrice.isAvailable()) {
+            return false;
+        } else {
+            return gamePrice.getCurrentPrice() != gameFromDbPrice.getCurrentPrice() ||
+                    gamePrice.getCurrentPsPlusPrice() != gameFromDbPrice.getCurrentPsPlusPrice();
+        }
     }
 
     public void saveGameRecordIntoDb(Game game) {
@@ -90,7 +97,7 @@ public class GameService {
                     game.getPrice().getCurrentPsPlusPrice(), LocalDate.now());
             LOGGER.info("Saved price history for game [{}]. Game id: [{}]", game.getName(), game.getId());
         } catch (Exception ex) {
-            LOGGER.info("Exception during saving price history", ex);
+            LOGGER.warn("Exception during saving price history", ex);
         }
     }
 
