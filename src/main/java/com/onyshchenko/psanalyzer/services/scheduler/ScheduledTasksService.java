@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +36,8 @@ public class ScheduledTasksService {
     private UserService userService;
     @Autowired
     private DocumentParseService documentParseService;
+
+    private List<String> listOfVisitedUrls;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledTasksService.class);
 
@@ -53,6 +56,7 @@ public class ScheduledTasksService {
         LocalDateTime startingTime = LocalDateTime.now();
         LOGGER.info("Starting scheduled task for collecting games data.");
 
+        listOfVisitedUrls = new ArrayList<>();
         try {
             collectDataFromSiteByCategory(UrlCategory.PS4);
             collectDataFromSiteByCategory(UrlCategory.ALL_SALES);
@@ -67,13 +71,41 @@ public class ScheduledTasksService {
                 Duration.between(startingTime, listDataEndTime).toMinutes());
 
         try {
-            getDetailedInfoAboutAllGames();
+            getDetailedInfoAboutNotFilledGames();
+            getInfoAboutGamesOutOfList();
         } catch (ForbiddenRequestException exception) {
             LOGGER.error("Forbidden exception captured.", exception);
         }
         LocalDateTime finishingTime = LocalDateTime.now();
         LOGGER.info("Collecting data about games finished in [{}] minutes",
                 Duration.between(startingTime, finishingTime).toMinutes());
+    }
+
+    private void getInfoAboutGamesOutOfList() throws ForbiddenRequestException {
+        LOGGER.info("Updating prices of games out of visited lists.");
+        List<String> urls = gameService.getUrlsOfAllGames();
+        LOGGER.info("Total urls: [{}].", urls.size());
+        LOGGER.info("Already visited urls: [{}].", listOfVisitedUrls.size());
+        urls.removeAll(listOfVisitedUrls);
+        LOGGER.info("Remained to visit urls: [{}].", urls.size());
+
+        if (urls.isEmpty()) {
+            LOGGER.error("No games for updating.");
+            return;
+        }
+
+        for (String url : urls) {
+            String address = BASE_URL + "product/" + url;
+            Document document = getDataFromUrlWithJsoup(address);
+            if (document == null) {
+                LOGGER.warn("Document is null.");
+                continue;
+            }
+
+            Game gameBasedOnPriceOnly = documentParseService.prepareGameBasedOnSingleGameDocument(document, url);
+            gameService.compareCollectedSingleGameToExisted(gameBasedOnPriceOnly);
+        }
+
     }
 
     private void collectDataFromSiteByCategory(UrlCategory urlCategory) throws ForbiddenRequestException {
@@ -96,8 +128,12 @@ public class ScheduledTasksService {
             String size = getDefaultSizeFromPage(page);
             isLastPage = documentParseService.chekIfTheLastPageOfDocument(documentContext.get(), urlCategory.getUrl(), size);
 
+            List<String> urlsExtractedFromDocument = documentParseService
+                    .getGamesUrlFromDocument(documentContext.get(), urlCategory.getUrl(), size);
+            listOfVisitedUrls.addAll(urlsExtractedFromDocument);
+
             List<Game> games = documentParseService
-                    .getInitialInfoAboutGamesFromDocumentContext(documentContext.get(), urlCategory.getUrl(), size);
+                    .getInitialInfoAboutGamesFromDocumentContext(documentContext.get(), urlsExtractedFromDocument);
             gameService.compareCollectedListOfGamesToExisted(games);
             page++;
         } while (!isLastPage);
@@ -171,11 +207,11 @@ public class ScheduledTasksService {
         }
     }
 
-    public void getDetailedInfoAboutAllGames() throws ForbiddenRequestException {
+    public void getDetailedInfoAboutNotFilledGames() throws ForbiddenRequestException {
         LOGGER.info("Process of getting detailed info about games STARTED.");
-        List<String> urls = gameService.getUrlsOfAllGames();
+        List<String> urls = gameService.getUrlsOfNotUpdatedGames();
         if (urls == null || urls.isEmpty()) {
-            LOGGER.error("No games for updating.");
+            LOGGER.warn("No games for updating.");
             return;
         }
         LOGGER.info("Collected [{}] games for getting detailed info.", urls.size());

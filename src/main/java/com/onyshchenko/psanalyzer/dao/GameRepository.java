@@ -24,6 +24,8 @@ public interface GameRepository extends JpaRepository<Game, Long> {
 
     Optional<Game> findByNameAndUrl(String name, String url);
 
+    Optional<Game> findByUrl(String url);
+
     @Query("select url from Game games where games.detailedInfoFilledIn = false")
     List<String> urlsOfNotUpdatedGames();
 
@@ -35,6 +37,6 @@ public interface GameRepository extends JpaRepository<Game, Long> {
 
     @Modifying
     @Transactional
-    @Query(value = "insert into Games_history (date_of_change, game_id, game_price, psplus_price) values (:date, :id, :price, :psPlusPrice)", nativeQuery = true)
-    void saveHistory(@Param("id") long id, @Param("price") int price, @Param("psPlusPrice") int psPlusPrice, @Param("date") LocalDate date);
+    @Query(value = "insert into Games_history (date_of_change, game_id, game_price, psplus_price, is_available) values (:date, :id, :price, :psPlusPrice, :isAvailable)", nativeQuery = true)
+    void saveHistory(@Param("id") long id, @Param("price") int price, @Param("psPlusPrice") int psPlusPrice, @Param("date") LocalDate date, @Param("isAvailable") boolean isAvailable);
 }

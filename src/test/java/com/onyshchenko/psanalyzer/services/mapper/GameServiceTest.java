@@ -45,7 +45,7 @@ class GameServiceTest {
         Game gameFromDb = getGame(getPriceFromDb());
         assertEquals(150, gameFromDb.getPrice().getCurrentPrice());
 
-        when(gameRepository.findByNameAndUrl(GAME_NAME, GAME_URL)).thenReturn(Optional.of(gameFromDb));
+        when(gameRepository.findByUrl(GAME_URL)).thenReturn(Optional.of(gameFromDb));
         when(gameRepository.save(any())).thenReturn(gameFromDb);
 
         doAnswer(invocation -> {

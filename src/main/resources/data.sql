@@ -9,5 +9,6 @@ create table IF NOT EXISTS games_history (
 	game_id VARCHAR (50) NOT NULL,
 	game_price integer NOT NULL,
 	psplus_price integer NOT NULL,
-	date_of_change TIMESTAMP NOT NULL
+	date_of_change TIMESTAMP NOT NULL,
+	is_available boolean NOT NULL
 )

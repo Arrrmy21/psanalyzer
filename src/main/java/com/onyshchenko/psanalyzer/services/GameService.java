@@ -42,32 +42,33 @@ public class GameService {
     @Autowired
     private GameMapper gameMapper;
 
-    public Optional<Game> findSameGameInDb(Game game) {
-        return gameRepository.findByNameAndUrl(game.getName(), game.getUrl());
-    }
-
     public void compareCollectedListOfGamesToExisted(List<Game> games) {
-
         if (games.isEmpty()) {
             LOGGER.warn("List of games is empty.");
             return;
         }
-        for (Game game : games) {
-            LOGGER.info("Checking game record for name: [{}].", game.getName());
-            Optional<Game> gameFromDb = findSameGameInDb(game);
+        games.forEach(this::compareCollectedSingleGameToExisted);
+    }
 
-            if (!gameFromDb.isPresent()) {
-                LOGGER.info("Saving game to DB with name: [{}].", game.getName());
-                saveGameRecordIntoDb(game);
-            } else {
-                if (currentGamePriceDiffersThenStored(game.getPrice(), gameFromDb.get().getPrice())) {
-                    LOGGER.info("Price of game in DB differs from site. Updating price for game: [{}]", game.getName());
-                    priceService.updatePriceComparingWithExisting(game.getPrice(), gameFromDb.get().getPrice());
-                    saveGameRecordIntoDb(gameFromDb.get());
-                }
-                LOGGER.info("Actual game info is already in database.");
+    public void compareCollectedSingleGameToExisted(Game game) {
+        LOGGER.info("Checking game record with url: [{}].", game.getUrl());
+        Optional<Game> gameFromDb = findSameGameInDb(game);
+
+        if (!gameFromDb.isPresent()) {
+            LOGGER.info("Saving game to DB with name: [{}].", game.getName());
+            saveGameRecordIntoDb(game);
+        } else {
+            if (currentGamePriceDiffersThenStored(game.getPrice(), gameFromDb.get().getPrice())) {
+                LOGGER.info("Price of game in DB differs from site. Updating price for game: [{}]", game.getName());
+                priceService.updatePriceComparingWithExisting(game.getPrice(), gameFromDb.get().getPrice());
+                saveGameRecordIntoDb(gameFromDb.get());
             }
+            LOGGER.info("Actual game info is already in database.");
         }
+    }
+
+    public Optional<Game> findSameGameInDb(Game game) {
+        return gameRepository.findByUrl(game.getUrl());
     }
 
     private boolean currentGamePriceDiffersThenStored(Price gamePrice, Price gameFromDbPrice) {
@@ -94,7 +95,7 @@ public class GameService {
     private void savePriceChangingHistory(Game game) {
         try {
             gameRepository.saveHistory(game.getId(), game.getPrice().getCurrentPrice(),
-                    game.getPrice().getCurrentPsPlusPrice(), LocalDate.now());
+                    game.getPrice().getCurrentPsPlusPrice(), LocalDate.now(), game.getPrice().isAvailable());
             LOGGER.info("Saved price history for game [{}]. Game id: [{}]", game.getName(), game.getId());
         } catch (Exception ex) {
             LOGGER.warn("Exception during saving price history", ex);

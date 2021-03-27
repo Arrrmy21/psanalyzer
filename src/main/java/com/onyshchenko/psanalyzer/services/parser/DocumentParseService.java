@@ -86,28 +86,32 @@ public class DocumentParseService {
         return gameForUpdating;
     }
 
-    public List<Game> getInitialInfoAboutGamesFromDocumentContext(DocumentContext context, String category, String size) {
+    public List<String> getGamesUrlFromDocument(DocumentContext context, String urlCategory, String size) {
 
         try {
-            LOGGER.info("Starting parsing of Document Context with list of games.");
-
-            List<String> urls = ((JSONArray) context
-                    .read(String.format(CATEGORY_GRID_FORMATTER, category, size)))
+            LOGGER.info("Starting extracting urls from Document Context.");
+            return ((JSONArray) context
+                    .read(String.format(CATEGORY_GRID_FORMATTER, urlCategory, size)))
                     .stream()
                     .map(el -> ((Map<?, ?>) el).get("id").toString())
                     .map(s -> s.split(":")).map(s -> s[1])
                     .collect(Collectors.toList());
-
-            List<Game> games = new ArrayList<>();
-            for (String gameUrl : urls) {
-                extractGameFromContextAndAddToList(games, context, gameUrl);
-            }
-
-            return games;
         } catch (Exception e) {
-            LOGGER.error("Error in getInitialInfoAboutGamesFromDocumentContext", e);
+            LOGGER.error("Error in getGamesUrlFromDocument().", e);
             return Collections.emptyList();
         }
+    }
+
+    public List<Game> getInitialInfoAboutGamesFromDocumentContext(DocumentContext context, List<String> urls) {
+
+        LOGGER.info("Starting parsing of Document Context with list of games.");
+
+        List<Game> games = new ArrayList<>();
+        for (String gameUrl : urls) {
+            extractGameFromContextAndAddToList(games, context, gameUrl);
+        }
+
+        return games;
     }
 
     private void extractGameFromContextAndAddToList(List<Game> games, DocumentContext context, String gameUrl) {
@@ -261,5 +265,47 @@ public class DocumentParseService {
         }
 
         return releaseDate;
+    }
+
+    public Game prepareGameBasedOnSingleGameDocument(Document document, String url) {
+
+        List<?> listOfPrices = JsonPath.parse(document.getElementsByClass("pdp-cta")
+                .get(0).childNodes().get(0).childNode(0).toString())
+                .read("$.cache.Product:" + url + ".webctas");
+
+        String nameOfBasePriceElement = (String) ((Map<?, ?>) listOfPrices.get(0)).get("__ref");
+
+        Map<?, ?> mapFromPriceContext = getPriceOfDistinctElementFromDocument(document, nameOfBasePriceElement);
+
+        DocumentContext context = JsonPath.parse(mapFromPriceContext);
+
+        Price basePrice = getPriceBasedOnContext(context);
+        Game game = new Game();
+        game.setPrice(basePrice);
+        game.setUrl(url);
+
+        if (listOfPrices.size() > 1) {
+            String nameOfSubscriptionElement = (String) ((Map<?, ?>) listOfPrices.get(1)).get("__ref");
+
+            Map<?, ?> subscriptionData = getPriceOfDistinctElementFromDocument(document, nameOfSubscriptionElement);
+
+            String upsellText = (String) subscriptionData.get("upsellText");
+
+            if (upsellText.contains("PS Plus")) {
+                Integer discPsPlusPrice = (Integer) subscriptionData.get("discountedValue");
+                int psPlusPrice = discPsPlusPrice / 100;
+                basePrice.setCurrentPsPlusPrice(psPlusPrice);
+            } else if (upsellText.contains("EA")) {
+                game.setEaAccess(true);
+            }
+        }
+
+        return game;
+    }
+
+    private Map<?, ?> getPriceOfDistinctElementFromDocument(Document document, String elementName) {
+        return JsonPath.parse(document.getElementsByClass("pdp-cta")
+                .get(0).childNodes().get(0).childNode(0).toString())
+                .read("$.cache." + elementName + ".price");
     }
 }
