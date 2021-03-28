@@ -1,6 +1,8 @@
 package com.onyshchenko.psanalyzer.services.searchutils;
 
+import com.onyshchenko.psanalyzer.model.Category;
 import com.onyshchenko.psanalyzer.model.Game;
+import com.onyshchenko.psanalyzer.model.Genre;
 import com.onyshchenko.psanalyzer.model.Price;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;
@@ -43,6 +45,34 @@ public class GameSpecification implements Specification<Game> {
                             priceJoin.get(CURRENT_PRICE), criteria.getValue().toString());
                 }
                 break;
+            case CATEGORY:
+                String filterName = criteria.getKey().getFilterName();
+
+                Predicate fullGamesPredicate = criteriaBuilder.equal(
+                        root.get(filterName), Category.valueOf(Category.FULL.toString()));
+                Predicate gameBundlePredicate = criteriaBuilder.equal(
+                        root.get(filterName), Category.valueOf(Category.PREMIUM.toString()));
+                Predicate premiumGamePredicate = criteriaBuilder.equal(
+                        root.get(filterName), Category.valueOf(Category.GAME_BUNDLE.toString()));
+
+                Predicate notFullGamesPredicate = criteriaBuilder.notEqual(
+                        root.get(filterName), Category.valueOf(Category.FULL.toString()));
+                Predicate notGameBundlePredicate = criteriaBuilder.notEqual(
+                        root.get(filterName), Category.valueOf(Category.PREMIUM.toString()));
+                Predicate notPremiumGamePredicate = criteriaBuilder.notEqual(
+                        root.get(filterName), Category.valueOf(Category.GAME_BUNDLE.toString()));
+
+                if (criteria.getValue().equals("games")) {
+                    return criteriaBuilder.or(fullGamesPredicate, gameBundlePredicate, premiumGamePredicate);
+                } else if (criteria.getValue().equals("otherProducts")) {
+                    return criteriaBuilder.and(notFullGamesPredicate, notGameBundlePredicate, notPremiumGamePredicate);
+                } else {
+                    return criteriaBuilder.equal(
+                            root.get(criteria.getKey().getFilterName()), Category.valueOf(criteria.getValue().toString().toUpperCase()));
+                }
+            case GENRE:
+                return criteriaBuilder.and(criteriaBuilder.and(root.join("genres")
+                        .in(Genre.valueOf(criteria.getValue().toString().toUpperCase()))));
             case NAME:
             case PUBLISHER:
                 if (criteria.getOperation().equalsIgnoreCase("=")) {
@@ -51,11 +81,10 @@ public class GameSpecification implements Specification<Game> {
                 }
                 break;
             case RELEASE:
-                if (criteria.getOperation().equalsIgnoreCase("=")) {
-                    if (criteria.getValue().toString().equalsIgnoreCase("no")) {
-                        return criteriaBuilder.greaterThan(
-                                root.get(criteria.getKey().getFilterName()).as(LocalDate.class), LocalDate.now());
-                    }
+                if (criteria.getOperation().equalsIgnoreCase("=")
+                        && criteria.getValue().toString().equalsIgnoreCase("no")) {
+                    return criteriaBuilder.greaterThan(
+                            root.get(criteria.getKey().getFilterName()).as(LocalDate.class), LocalDate.now());
                 }
                 break;
             case DISCOUNT:

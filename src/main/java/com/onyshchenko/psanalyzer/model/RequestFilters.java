@@ -7,6 +7,8 @@ public enum RequestFilters {
     PUBLISHER("searchPublisher"),
     RELEASE("releaseDate"),
     DISCOUNT("discount"),
+    GENRE("genre"),
+    CATEGORY("category"),
     USERID("userId");
 
     RequestFilters(String filter) {

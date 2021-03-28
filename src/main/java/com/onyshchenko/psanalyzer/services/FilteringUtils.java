@@ -43,6 +43,10 @@ public class FilteringUtils {
                 return RequestFilters.RELEASE;
             case "disc":
                 return RequestFilters.DISCOUNT;
+            case "genre":
+                return RequestFilters.GENRE;
+            case "category":
+                return RequestFilters.CATEGORY;
             default:
                 throw new ValidationException("Filter parameter {" + key + "} is not valid.");
         }

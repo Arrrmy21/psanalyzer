@@ -106,17 +106,19 @@ public class GameService {
 
         if (filter == null) {
             return gameRepository.findAll(pageRequest);
-        }
-        Specification<Game> spec = FilteringUtils.getSpecificationFromFilter(filter);
-
-        if (((GameSpecification) spec).getCriteria().getKey().equals(RequestFilters.USERID)) {
-            String sp = String.valueOf(((GameSpecification) spec).getCriteria().getValue());
-            long userId = Long.parseLong(sp);
+        } else if (filter.contains(RequestFilters.USERID.getFilterName())) {
+            String idValue = filter.split("=")[1];
+            long userId = Long.parseLong(idValue);
 
             return prepareWishList(pageRequest, userId);
         }
-        return gameRepository.findAll(spec, pageRequest);
+        Specification<Game> spec = FilteringUtils.getSpecificationFromFilter(filter);
 
+        if (spec == null) {
+            return null;
+        }
+
+        return gameRepository.findAll(spec, pageRequest);
     }
 
     public Page<Game> getPersonalizedListOfGames(PageRequest pageRequest, String filter, long userId)
