@@ -9,6 +9,9 @@ public enum RequestFilters {
     DISCOUNT("discount"),
     GENRE("genre"),
     CATEGORY("category"),
+    PSPLUS("psplus"),
+    EAACCESS("isEaAccess"),
+    EXCLUSIVE("isExclusive"),
     USERID("userId");
 
     RequestFilters(String filter) {

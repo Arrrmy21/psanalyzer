@@ -47,6 +47,12 @@ public class FilteringUtils {
                 return RequestFilters.GENRE;
             case "category":
                 return RequestFilters.CATEGORY;
+            case "psplus":
+                return RequestFilters.PSPLUS;
+            case "eaaccess":
+                return RequestFilters.EAACCESS;
+            case "exclusive":
+                return RequestFilters.EXCLUSIVE;
             default:
                 throw new ValidationException("Filter parameter {" + key + "} is not valid.");
         }

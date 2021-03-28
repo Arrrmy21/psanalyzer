@@ -92,6 +92,12 @@ public class GameSpecification implements Specification<Game> {
                     return criteriaBuilder.greaterThan(priceJoin.get(CURRENT_DISCOUNT), criteria.getValue().toString());
                 }
                 break;
+            case PSPLUS:
+                return criteriaBuilder.lessThan(
+                        priceJoin.get("currentPsPlusPrice"), priceJoin.get(CURRENT_PRICE));
+            case EAACCESS:
+            case EXCLUSIVE:
+                return criteriaBuilder.isTrue(root.get(criteria.getKey().getFilterName()));
             default:
                 return null;
         }
