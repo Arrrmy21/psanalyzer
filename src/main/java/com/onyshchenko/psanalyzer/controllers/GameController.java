@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.xml.bind.ValidationException;
 import java.util.Optional;
+import java.util.List;
 
 @RestController
 public class GameController implements GameControllerIntf {
@@ -95,5 +96,12 @@ public class GameController implements GameControllerIntf {
         LOGGER.info("Starting collecting data via controller.");
         scheduledTasksService.collectDataAboutGamesByList();
         LOGGER.info("Collecting data via controller FINISHED.");
+    }
+
+    @Override
+    public List<String> getListOfAllPublishers(int page, int size) throws ValidationException {
+        LOGGER.info("Get list of all publishers request. Page=[{}], size=[{}]", page, size);
+
+        return gameService.getListOfAllPublishers(page, size);
     }
 }

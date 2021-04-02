@@ -240,4 +240,9 @@ public class GameService {
         }
     }
 
+    public List<String> getListOfAllPublishers(int page, int size) {
+        int offset = page * size;
+
+        return gameRepository.getAllPublishers(size, offset);
+    }
 }

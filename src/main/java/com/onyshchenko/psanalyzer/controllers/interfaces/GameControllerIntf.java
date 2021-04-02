@@ -18,6 +18,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.ValidationException;
 import java.util.Optional;
+import java.util.List;
 
 @RequestMapping("/games")
 public interface GameControllerIntf {
@@ -64,4 +65,11 @@ public interface GameControllerIntf {
     @PreAuthorize("hasRole('ADMIN')")
     @Consumes(MediaType.APPLICATION_JSON)
     void startUpdateGameProcedure();
+
+    @GetMapping("/publishers")
+    @PreAuthorize("hasRole('USER')")
+    @Produces(MediaType.APPLICATION_JSON)
+    List<String> getListOfAllPublishers(@RequestParam(required = false, defaultValue = "0") int page,
+                                        @RequestParam(required = false, defaultValue = "10") int size)
+            throws ValidationException;
 }
