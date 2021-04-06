@@ -1,6 +1,7 @@
 package com.onyshchenko.psanalyzer.controllers.interfaces;
 
 import com.onyshchenko.psanalyzer.model.Game;
+import com.onyshchenko.psanalyzer.model.Publisher;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +19,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.ValidationException;
 import java.util.Optional;
-import java.util.List;
 
 @RequestMapping("/games")
 public interface GameControllerIntf {
@@ -69,7 +69,7 @@ public interface GameControllerIntf {
     @GetMapping("/publishers")
     @PreAuthorize("hasRole('USER')")
     @Produces(MediaType.APPLICATION_JSON)
-    List<String> getListOfAllPublishers(@RequestParam(required = false, defaultValue = "0") int page,
-                                        @RequestParam(required = false, defaultValue = "10") int size)
+    Page<Publisher> getListOfAllPublishers(@RequestParam(required = false, defaultValue = "0") int page,
+                                           @RequestParam(required = false, defaultValue = "10") int size)
             throws ValidationException;
 }

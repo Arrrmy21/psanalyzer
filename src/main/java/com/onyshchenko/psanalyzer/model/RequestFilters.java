@@ -5,6 +5,7 @@ public enum RequestFilters {
     PRICE("price"),
     NAME("searchName"),
     PUBLISHER("searchPublisher"),
+    PUBLISHER_ID("id"),
     RELEASE("releaseDate"),
     DISCOUNT("discount"),
     GENRE("genre"),

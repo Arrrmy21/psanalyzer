@@ -7,7 +7,6 @@ import com.onyshchenko.psanalyzer.model.Price;
 import com.onyshchenko.psanalyzer.model.RequestFilters;
 import com.onyshchenko.psanalyzer.model.User;
 import com.onyshchenko.psanalyzer.services.mapper.GameMapper;
-import com.onyshchenko.psanalyzer.services.searchutils.GameSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -238,11 +237,5 @@ public class GameService {
         } else {
             return new ResponseEntity<>("Game with id [" + gameId + "] not found ", HttpStatus.NO_CONTENT);
         }
-    }
-
-    public List<String> getListOfAllPublishers(int page, int size) {
-        int offset = page * size;
-
-        return gameRepository.getAllPublishers(size, offset);
     }
 }

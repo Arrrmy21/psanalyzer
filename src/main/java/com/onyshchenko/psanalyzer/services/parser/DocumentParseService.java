@@ -8,10 +8,13 @@ import com.onyshchenko.psanalyzer.model.DeviceType;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.Genre;
 import com.onyshchenko.psanalyzer.model.Price;
+import com.onyshchenko.psanalyzer.model.Publisher;
+import com.onyshchenko.psanalyzer.services.PublisherService;
 import net.minidev.json.JSONArray;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import org.jsoup.nodes.Document;
@@ -24,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,6 +46,9 @@ public class DocumentParseService {
 
     private static final String PAGE_INFO_FORMATTER = "$.props.apolloState.['$CategoryGrid:%s:ru-ua:%s.pageInfo']";
 
+    @Autowired
+    private PublisherService publisherService;
+
     public Game getDetailedGameInfoFromDocument(Document document) {
         LOGGER.info("Parsing detailed game info from document.");
         Game gameForUpdating = new Game();
@@ -49,9 +56,15 @@ public class DocumentParseService {
         try {
             Element element = document.getElementsByClass("psw-grid-x psw-fill-x psw-l-space-y-m psw-grid-margin-x psw-m-y-0").get(0);
 
-            String publisher = extractPublisherFromGameElement(element);
-            if (publisher != null && !publisher.isEmpty()) {
-                gameForUpdating.setPublisher(publisher);
+            String publisherName = extractPublisherFromGameElement(element);
+
+            if (publisherName != null && !publisherName.isEmpty()) {
+                Optional<Publisher> publisher = publisherService.findByName(publisherName);
+                if (publisher.isPresent()) {
+                    gameForUpdating.setPublisher(publisher.get());
+                } else {
+                    gameForUpdating.setPublisher(new Publisher(publisherName));
+                }
             } else {
                 exceptionCaptured = true;
                 LOGGER.debug("Publisher for game is empty.");
@@ -190,7 +203,7 @@ public class DocumentParseService {
         boolean isFreeGame = priceContext.read("isFree");
         if (isFreeGame) {
             return new Price();
-        } else if (basePrice.contains("Недоступно") && discountedPrice.contains("Недоступно")) {
+        } else if (basePrice == null || (basePrice.contains("Недоступно") && discountedPrice.contains("Недоступно"))) {
             LOGGER.info("Game is not available for purchase.");
             return new Price().inNotAvailable();
         } else {

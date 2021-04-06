@@ -65,11 +65,9 @@ public class Game {
     @Column(name = "error_filling")
     private Boolean errorWhenFilling;
 
-    @Column(name = "game_publisher")
-    private String publisher;
-
-    @Column(name = "game_search_publisher")
-    private String searchPublisher;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "publisher_id")
+    private Publisher publisher;
 
     @ManyToMany(mappedBy = "wishList")
     private Collection<User> users;
@@ -167,17 +165,12 @@ public class Game {
         this.detailedInfoFilledIn = detailedInfoFilledIn;
     }
 
-    public String getPublisher() {
+    public Publisher getPublisher() {
         return publisher;
     }
 
-    public void setPublisher(String publisher) {
+    public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
-        this.searchPublisher = publisher.toLowerCase();
-    }
-
-    public String getSearchPublisher() {
-        return searchPublisher;
     }
 
     public Boolean isErrorWhenFilling() {
@@ -225,7 +218,7 @@ public class Game {
     public String getUpdatedDate() {
         return "Game:" +
                 "name= " + getName() + "\n" +
-                "publisher= " + getPublisher() + "\n" +
+                "publisher= " + getPublisher().getName() + "\n" +
                 "release date= " + getReleaseDate() + "\n" +
                 "device type= " + getDeviceTypes() + "\n" +
                 "genres= " + getGenres() + ".";

@@ -2,8 +2,10 @@ package com.onyshchenko.psanalyzer.controllers;
 
 import com.onyshchenko.psanalyzer.controllers.interfaces.GameControllerIntf;
 import com.onyshchenko.psanalyzer.model.Game;
+import com.onyshchenko.psanalyzer.model.Publisher;
 import com.onyshchenko.psanalyzer.services.FilteringUtils;
 import com.onyshchenko.psanalyzer.services.GameService;
+import com.onyshchenko.psanalyzer.services.PublisherService;
 import com.onyshchenko.psanalyzer.services.scheduler.ScheduledTasksService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,8 @@ public class GameController implements GameControllerIntf {
     private FilteringUtils filteringUtils;
     @Autowired
     private ScheduledTasksService scheduledTasksService;
+    @Autowired
+    private PublisherService publisherService;
 
     public Optional<Game> getGame(@PathVariable(value = "gameId") long gameId) {
         LOGGER.info("Get game request. Id: [{}]", gameId);
@@ -99,9 +103,9 @@ public class GameController implements GameControllerIntf {
     }
 
     @Override
-    public List<String> getListOfAllPublishers(int page, int size) throws ValidationException {
+    public Page<Publisher> getListOfAllPublishers(int page, int size) {
         LOGGER.info("Get list of all publishers request. Page=[{}], size=[{}]", page, size);
 
-        return gameService.getListOfAllPublishers(page, size);
+        return publisherService.getListOfAllPublishers(PageRequest.of(page, size));
     }
 }

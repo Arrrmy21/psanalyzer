@@ -39,6 +39,8 @@ public class FilteringUtils {
                 return RequestFilters.USERID;
             case "publisher":
                 return RequestFilters.PUBLISHER;
+            case "publisherId":
+                return RequestFilters.PUBLISHER_ID;
             case "released":
                 return RequestFilters.RELEASE;
             case "disc":

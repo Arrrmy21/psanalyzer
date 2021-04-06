@@ -40,6 +40,4 @@ public interface GameRepository extends JpaRepository<Game, Long> {
     @Query(value = "insert into Games_history (date_of_change, game_id, game_price, psplus_price, is_available) values (:date, :id, :price, :psPlusPrice, :isAvailable)", nativeQuery = true)
     void saveHistory(@Param("id") long id, @Param("price") int price, @Param("psPlusPrice") int psPlusPrice, @Param("date") LocalDate date, @Param("isAvailable") boolean isAvailable);
 
-    @Query(value = "select distinct game_publisher from games limit(:size) offset(:offset)", nativeQuery = true)
-    List<String> getAllPublishers(@Param("size") int size, @Param("offset") int offset);
 }

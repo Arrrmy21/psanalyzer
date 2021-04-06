@@ -4,6 +4,7 @@ import com.onyshchenko.psanalyzer.model.Category;
 import com.onyshchenko.psanalyzer.model.Game;
 import com.onyshchenko.psanalyzer.model.Genre;
 import com.onyshchenko.psanalyzer.model.Price;
+import com.onyshchenko.psanalyzer.model.Publisher;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;
 
@@ -29,6 +30,7 @@ public class GameSpecification implements Specification<Game> {
     public Predicate toPredicate(Root<Game> root, @Nullable CriteriaQuery<?> criteriaQuery, @Nullable CriteriaBuilder criteriaBuilder) {
 
         Join<Game, Price> priceJoin = root.join("price");
+        Join<Game, Publisher> publisherJoin = root.join("publisher");
 
         if (criteriaBuilder == null) {
             return null;
@@ -77,7 +79,13 @@ public class GameSpecification implements Specification<Game> {
             case PUBLISHER:
                 if (criteria.getOperation().equalsIgnoreCase("=")) {
                     return criteriaBuilder.like(
-                            root.get(criteria.getKey().getFilterName()), "%" + criteria.getValue().toString().toLowerCase() + "%");
+                            publisherJoin.get("searchName"), "%" + criteria.getValue().toString().toLowerCase() + "%");
+                }
+                break;
+            case PUBLISHER_ID:
+                if (criteria.getOperation().equalsIgnoreCase("=")) {
+                    return criteriaBuilder.equal(
+                            publisherJoin.get("id"), criteria.getValue().toString());
                 }
                 break;
             case RELEASE:
