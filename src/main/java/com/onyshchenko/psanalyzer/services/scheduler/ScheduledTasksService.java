@@ -50,7 +50,7 @@ public class ScheduledTasksService {
     private String botToken;
 
     //    @Scheduled(fixedDelay = 6000000)
-    @Scheduled(cron = "0 0 5 * * *", zone = "GMT+2:00")
+    @Scheduled(cron = "0 0 5 * * *", zone = "GMT+3:00")
     public void collectDataAboutGamesByList() {
 
         LocalDateTime startingTime = LocalDateTime.now();
@@ -90,7 +90,7 @@ public class ScheduledTasksService {
         LOGGER.info("Remained to visit urls: [{}].", urls.size());
 
         if (urls.isEmpty()) {
-            LOGGER.error("No games for updating.");
+            LOGGER.warn("No games for updating.");
             return;
         }
 
@@ -168,7 +168,7 @@ public class ScheduledTasksService {
     }
 
     //        @Scheduled(fixedDelay = 6000000)
-    @Scheduled(cron = "0 0 20 * * *", zone = "GMT+2:00")
+    @Scheduled(cron = "0 0 20 * * *", zone = "GMT+3:00")
     public void checkUsersWishListAndSendNotifications() {
 
         List<Long> userIds = userService.getAllUsersWithDiscountOnGameInWishlist();
