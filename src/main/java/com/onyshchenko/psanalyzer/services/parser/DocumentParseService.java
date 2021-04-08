@@ -80,6 +80,7 @@ public class DocumentParseService {
 
             Set<Genre> gameGenres = extractGenresFromGameElement(element);
             if (gameGenres.isEmpty()) {
+                exceptionCaptured = true;
                 LOGGER.debug("Genres list for game is empty.");
             } else {
                 for (Genre genre : gameGenres) {
@@ -169,7 +170,8 @@ public class DocumentParseService {
 
         Map<?, ?> subscriptionContext = priceContext.read("upsellServiceBranding");
 
-        if (subscriptionContext == null || ((List<?>) JsonPath.parse(subscriptionContext).read("json")).isEmpty()) {
+        boolean isInSubscription = priceContext.read("isTiedToSubscription");
+        if (!isInSubscription && (subscriptionContext == null || ((List<?>) JsonPath.parse(subscriptionContext).read("json")).isEmpty())) {
             return;
         }
 
@@ -178,10 +180,12 @@ public class DocumentParseService {
         for (String subscriptionCategory : subscriptions) {
 
             if (subscriptionCategory.equalsIgnoreCase("EA_ACCESS")) {
+                LOGGER.info("Captured game in EA_ACCESS subscription.");
                 game.setEaAccess(true);
             } else if (subscriptionCategory.equalsIgnoreCase("PS_PLUS") && game.getPrice() != null) {
                 String psPlusUpsellText = priceContext.read("upsellText").toString();
                 if (psPlusUpsellText.contains("Сэкономьте еще ")) {
+                    LOGGER.info("Captured game with additional discount by PS Plus.");
                     String percentageValue = psPlusUpsellText.replace("Сэкономьте еще ", "")
                             .replace("\u00A0%", "");
                     int discountPercent = Integer.parseInt(percentageValue);

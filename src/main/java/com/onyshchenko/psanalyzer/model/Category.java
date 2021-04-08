@@ -22,6 +22,7 @@ public enum Category {
     VIRTUAL_CURRENCY("VIRTUAL_CURRENCY", "Virtual Currency", "Виртуальная валюта"),
     COSTUME("COSTUME", "COSTUME", "Костюм"),
     EPISODE("EPISODE", "Episode", "Эпизод"),
+    TRACK("TRACK", null, "Дорожка"),
     WEAPONS("WEAPONS", "Weapons", "Оружие");
 
     private static final Map<String, Category> ruUaCategoryName = new HashMap<>(values().length, 1);

@@ -76,6 +76,11 @@ public class GameSpecification implements Specification<Game> {
                 return criteriaBuilder.and(criteriaBuilder.and(root.join("genres")
                         .in(Genre.valueOf(criteria.getValue().toString().toUpperCase()))));
             case NAME:
+                if (criteria.getOperation().equalsIgnoreCase("=")) {
+                    return criteriaBuilder.like(
+                            root.get(criteria.getKey().getFilterName()), "%" + criteria.getValue().toString().toLowerCase() + "%");
+                }
+                break;
             case PUBLISHER:
                 if (criteria.getOperation().equalsIgnoreCase("=")) {
                     return criteriaBuilder.like(
