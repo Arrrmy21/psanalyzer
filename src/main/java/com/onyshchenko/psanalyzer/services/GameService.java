@@ -130,7 +130,7 @@ public class GameService {
             usersWishList = user.get().getWishList();
         }
         for (Long gameId : usersWishList) {
-            listOfGames.get().filter(game -> game.getId().equals(gameId)).forEach(g -> g.setInWl(true));
+            listOfGames.get().filter(game -> game.getId().equals(gameId)).forEach(g -> g.setIsInWl(true));
         }
 
         return listOfGames;
@@ -210,7 +210,7 @@ public class GameService {
 
         for (Long id : user.get().getWishList()) {
             if (id.equals(game.get().getId())) {
-                game.get().setInWl(true);
+                game.get().setIsInWl(true);
                 break;
             }
         }

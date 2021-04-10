@@ -156,7 +156,7 @@ public class DocumentParseService {
             game.setPrice(getPriceBasedOnContext(priceContext));
 
             boolean isExclusive = priceContext.read("isExclusive");
-            game.setExclusive(isExclusive);
+            game.setIsExclusive(isExclusive);
 
             fulfillGameInfoWithSubscriptionsInfo(game, priceContext);
 
@@ -181,7 +181,7 @@ public class DocumentParseService {
 
             if (subscriptionCategory.equalsIgnoreCase("EA_ACCESS")) {
                 LOGGER.info("Captured game in EA_ACCESS subscription.");
-                game.setEaAccess(true);
+                game.setIsEaAccess(true);
             } else if (subscriptionCategory.equalsIgnoreCase("PS_PLUS") && game.getPrice() != null) {
                 String psPlusUpsellText = priceContext.read("upsellText").toString();
                 if (psPlusUpsellText.contains("Сэкономьте еще ")) {
@@ -313,7 +313,7 @@ public class DocumentParseService {
                 int psPlusPrice = discPsPlusPrice / 100;
                 basePrice.setCurrentPsPlusPrice(psPlusPrice);
             } else if (upsellText.contains("EA")) {
-                game.setEaAccess(true);
+                game.setIsEaAccess(true);
             }
         }
 

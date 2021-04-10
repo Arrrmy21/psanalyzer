@@ -1,8 +1,11 @@
 package com.onyshchenko.psanalyzer.model;
 
+import lombok.Getter;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public enum Category {
 
     FULL("FULL_GAME", "Full Game", "Полная версия игры"),
@@ -43,27 +46,11 @@ public enum Category {
         this.ruUaName = ruUaName;
     }
 
-    public String getCategoryRuUaName() {
-        return ruUaName;
-    }
-
     public static Category ofRuUaName(String categoryName) {
         Category result = ruUaCategoryName.get(categoryName);
         if (result == null) {
             throw new IllegalArgumentException("Invalid category name: " + categoryName);
         }
         return result;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public String getOriginalName() {
-        return originalName;
-    }
-
-    public String getRuUaName() {
-        return ruUaName;
     }
 }

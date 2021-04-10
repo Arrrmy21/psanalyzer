@@ -1,5 +1,9 @@
 package com.onyshchenko.psanalyzer.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,6 +13,9 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "publishers")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Publisher {
 
     @Id
@@ -22,31 +29,8 @@ public class Publisher {
     @Column(name = "search_name")
     String searchName;
 
-    public Publisher() {
-    }
-
     public Publisher(String name) {
         this.name = name;
         this.searchName = name.toLowerCase();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSearchName() {
-        return searchName;
     }
 }

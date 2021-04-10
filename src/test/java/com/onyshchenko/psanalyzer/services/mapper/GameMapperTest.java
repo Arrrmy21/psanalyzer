@@ -33,7 +33,7 @@ public class GameMapperTest {
         assertNotNull(defaultGame.getGenres());
         assertNotNull(defaultGame.getUrl());
         assertNotNull(defaultGame.getCategory());
-        assertFalse(defaultGame.isErrorWhenFilling());
+        assertFalse(defaultGame.getErrorWhenFilling());
     }
 
     private Game prepareDefaultGame() {

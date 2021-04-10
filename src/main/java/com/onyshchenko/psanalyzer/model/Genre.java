@@ -1,11 +1,14 @@
 package com.onyshchenko.psanalyzer.model;
 
+import lombok.Getter;
+
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public enum Genre {
 
     ACTION("ACTION", "Action", "Боевики"),
@@ -54,22 +57,6 @@ public enum Genre {
         this.key = key;
         this.originalName = originalName;
         this.genreRuUaName = genreRuUaName;
-    }
-
-    public String getGenreRuUaName() {
-        return genreRuUaName;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public String getOriginalName() {
-        return originalName;
     }
 
     public static Genre ofRuUaName(String genreName) {

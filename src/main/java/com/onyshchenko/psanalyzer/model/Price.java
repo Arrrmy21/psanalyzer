@@ -1,5 +1,7 @@
 package com.onyshchenko.psanalyzer.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Entity;
@@ -14,6 +16,8 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "prices")
+@Getter
+@Setter
 public class Price {
 
     @Id
@@ -93,132 +97,8 @@ public class Price {
         return this;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public int getHighestPercentageDiscount() {
-        return highestPercentageDiscount;
-    }
-
-    public void setHighestPercentageDiscount(int highestPercentageDiscount) {
-        this.highestPercentageDiscount = highestPercentageDiscount;
-    }
-
-    public int getCurrentPercentageDiscount() {
-        return currentPercentageDiscount;
-    }
-
-    public void setCurrentPercentageDiscount(int currentPercentageDiscount) {
-        this.currentPercentageDiscount = currentPercentageDiscount;
-    }
-
-    public int getCurrentPrice() {
-        return currentPrice;
-    }
-
-    public void setCurrentPrice(int currentPrice) {
-        this.currentPrice = currentPrice;
-    }
-
-    public int getPreviousPrice() {
-        return previousPrice;
-    }
-
-    public void setPreviousPrice(int previousPrice) {
-        this.previousPrice = previousPrice;
-    }
-
-    public int getHighestPrice() {
-        return highestPrice;
-    }
-
-    public void setHighestPrice(int highestPrice) {
-        this.highestPrice = highestPrice;
-    }
-
-    public LocalDate getHighestPriceDate() {
-        return highestPriceDate;
-    }
-
-    public void setHighestPriceDate(LocalDate highestPriceDate) {
-        this.highestPriceDate = highestPriceDate;
-    }
-
-    public LocalDate getLowestPriceDate() {
-        return lowestPriceDate;
-    }
-
-    public void setLowestPriceDate(LocalDate lowestPriceDate) {
-        this.lowestPriceDate = lowestPriceDate;
-    }
-
-    public int getLowestPrice() {
-        return lowestPrice;
-    }
-
-    public void setLowestPrice(int lowestPrice) {
-        this.lowestPrice = lowestPrice;
-    }
-
-    public int getHighestDiscount() {
-        return highestDiscount;
-    }
-
-    public void setHighestDiscount(int highestDiscount) {
-        this.highestDiscount = highestDiscount;
-    }
-
-    public int getCurrentDiscount() {
-        return currentDiscount;
-    }
-
-    public void setCurrentDiscount(int currentDiscount) {
-        this.currentDiscount = currentDiscount;
-    }
-
-    public Currency getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(Currency currency) {
-        this.currency = currency;
-    }
-
-    public boolean hasDiscount() {
-        return currentDiscount != 0;
-    }
-
     public void calculatePercentageDiscount() {
         this.currentPercentageDiscount = (100 - getCurrentPrice() * 100 / getPreviousPrice());
-    }
-
-    public boolean isPriceChanged() {
-        return priceChanged;
-    }
-
-    public void setPriceChanged(boolean priceChanged) {
-        this.priceChanged = priceChanged;
-    }
-
-    public int getCurrentPsPlusPrice() {
-        return currentPsPlusPrice;
-    }
-
-    public void setCurrentPsPlusPrice(int currentPsPlusPrice) {
-        this.currentPsPlusPrice = currentPsPlusPrice;
-    }
-
-    public boolean isAvailable() {
-        return isAvailable;
-    }
-
-    public void setAvailable(boolean available) {
-        isAvailable = available;
     }
 
     public void calculateDiscount() {

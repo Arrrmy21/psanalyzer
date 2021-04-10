@@ -1,8 +1,11 @@
 package com.onyshchenko.psanalyzer.model;
 
+import lombok.Getter;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public enum Currency {
 
     UAH("UAH");
@@ -19,10 +22,6 @@ public enum Currency {
 
     Currency(String name) {
         currencyName = name;
-    }
-
-    public String getCurrencyName() {
-        return currencyName;
     }
 
     public static Currency of(String currencyName) {

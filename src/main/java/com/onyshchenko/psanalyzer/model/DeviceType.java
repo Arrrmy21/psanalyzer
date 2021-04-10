@@ -1,11 +1,14 @@
 package com.onyshchenko.psanalyzer.model;
 
+import lombok.Getter;
+
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public enum DeviceType {
 
     PS5("PS5"),
@@ -33,14 +36,6 @@ public enum DeviceType {
 
     DeviceType(String deviceName) {
         this.deviceName = deviceName;
-    }
-
-    public String getDeviceName() {
-        return deviceName;
-    }
-
-    public Long getId() {
-        return id;
     }
 
     public static DeviceType of(String deviceName) {
