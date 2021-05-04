@@ -97,13 +97,18 @@ public class ScheduledTasksService {
         for (String url : urls) {
             String address = BASE_URL + "product/" + url;
             Document document = getDataFromUrlWithJsoup(address);
-            if (document == null) {
-                LOGGER.warn("Document is null.");
+            if (document == null || !document.getElementsByClass("error-content psw-grid-x").isEmpty()) {
+                LOGGER.warn("Document doesn't contain game data.");
                 continue;
             }
 
-            Game gameBasedOnPriceOnly = documentParseService.prepareGameBasedOnSingleGameDocument(document, url);
-            gameService.compareCollectedSingleGameToExisted(gameBasedOnPriceOnly);
+            try {
+                Game gameBasedOnPriceOnly = documentParseService.prepareGameBasedOnSingleGameDocument(document, url);
+                gameService.compareCollectedSingleGameToExisted(gameBasedOnPriceOnly);
+            } catch (Exception ex) {
+                LOGGER.error("Exception while processing obtained document");
+                ex.printStackTrace();
+            }
         }
 
     }
