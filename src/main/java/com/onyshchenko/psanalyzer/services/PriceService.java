@@ -31,15 +31,15 @@ public class PriceService {
         int lowestPrice = gameToBeUpdatedOnDB.getLowestPrice();
         int highestPrice = gameToBeUpdatedOnDB.getHighestPrice();
 
+        int currentDiscount = evaluateDiscount(previousSitePrice, actualPrice);
+        int currentPercentageDiscount = evaluatePercentageDiscount(previousSitePrice, actualPrice);
+        gameToBeUpdatedOnDB.setCurrentDiscount(currentDiscount);
+        gameToBeUpdatedOnDB.setCurrentPercentageDiscount(currentPercentageDiscount);
+
         if (actualPrice < lowestPrice) {
             LOGGER.info("Reached the lowest price.");
             gameToBeUpdatedOnDB.setLowestPrice(actualPrice);
             gameToBeUpdatedOnDB.setLowestPriceDate(LocalDate.now());
-
-            int currentDiscount = evaluateDiscount(previousSitePrice, actualPrice);
-            int currentPercentageDiscount = evaluatePercentageDiscount(previousSitePrice, actualPrice);
-            gameToBeUpdatedOnDB.setCurrentDiscount(currentDiscount);
-            gameToBeUpdatedOnDB.setCurrentPercentageDiscount(currentPercentageDiscount);
 
             if (currentDiscount > gameToBeUpdatedOnDB.getHighestDiscount()) {
                 LOGGER.info("Reached the highest discount.");
@@ -51,8 +51,6 @@ public class PriceService {
 
             gameToBeUpdatedOnDB.setHighestPrice(actualPrice);
             gameToBeUpdatedOnDB.setHighestPriceDate(LocalDate.now());
-            gameToBeUpdatedOnDB.setCurrentDiscount(0);
-            gameToBeUpdatedOnDB.setCurrentPercentageDiscount(0);
         }
 
         gameToBeUpdatedOnDB.setCurrentPrice(actualPrice);
@@ -78,7 +76,7 @@ public class PriceService {
     }
 
     public int evaluatePercentageDiscount(int oldPrice, int newPrice) {
-        if (oldPrice == 0) {
+        if (oldPrice == 0 || oldPrice > newPrice) {
             return 0;
         }
         return (100 - newPrice * 100 / oldPrice);
