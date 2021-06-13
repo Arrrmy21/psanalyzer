@@ -47,7 +47,7 @@ public enum Category {
     }
 
     public static Category ofRuUaName(String categoryName) {
-        Category result = ruUaCategoryName.get(categoryName);
+        var result = ruUaCategoryName.get(categoryName);
         if (result == null) {
             throw new IllegalArgumentException("Invalid category name: " + categoryName);
         }

@@ -53,7 +53,7 @@ public class GameService {
         LOGGER.info("Checking game record with url: [{}].", game.getUrl());
         Optional<Game> gameFromDb = findSameGameInDb(game);
 
-        if (!gameFromDb.isPresent()) {
+        if (gameFromDb.isEmpty()) {
             LOGGER.info("Saving game to DB with name: [{}].", game.getName());
             saveGameRecordIntoDb(game);
         } else {
@@ -83,7 +83,7 @@ public class GameService {
 
     public void saveGameRecordIntoDb(Game game) {
         try {
-            Game savedGame = gameRepository.save(game);
+            var savedGame = gameRepository.save(game);
             LOGGER.info("Game [{}] saved to DB with id: [{}].", game.getName(), savedGame.getId());
             savePriceChangingHistory(savedGame);
         } catch (Exception ex) {
@@ -107,7 +107,7 @@ public class GameService {
             return gameRepository.findAll(pageRequest);
         } else if (filter.contains(RequestFilters.USERID.getFilterName())) {
             String idValue = filter.split("=")[1];
-            long userId = Long.parseLong(idValue);
+            var userId = Long.parseLong(idValue);
 
             return prepareWishList(pageRequest, userId);
         }
@@ -139,7 +139,7 @@ public class GameService {
     public Page<Game> prepareWishList(Pageable pageable, long userId) {
 
         Optional<User> user = userRepository.findById(userId);
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             LOGGER.warn("User with id [{}] doesn't exist.", userId);
             return Page.empty();
         }
@@ -176,7 +176,7 @@ public class GameService {
     public void updateGamePatch(Game updatedData, long gameId) {
         Optional<Game> gameFromDb = gameRepository.findById(gameId);
         if (gameFromDb.isPresent()) {
-            Game gameDb = gameFromDb.get();
+            var gameDb = gameFromDb.get();
             gameMapper.updateGameData(updatedData, gameDb);
 
             gameRepository.save(gameDb);
@@ -204,7 +204,7 @@ public class GameService {
         Optional<Game> game = gameRepository.findById(gameId);
         Optional<User> user = userRepository.findById(userId);
         LOGGER.info("Getting personalized game game data [{}] for user: [{}].", gameId, userId);
-        if (!game.isPresent() || !user.isPresent()) {
+        if (game.isEmpty() || user.isEmpty()) {
             return game;
         }
 
@@ -220,7 +220,7 @@ public class GameService {
 
     public Optional<Game> createGame(Game game) {
         LOGGER.info("Creating game record with name [{}].", game.getName());
-        Game createdGame = gameRepository.save(game);
+        var createdGame = gameRepository.save(game);
 
         return Optional.of(createdGame);
     }

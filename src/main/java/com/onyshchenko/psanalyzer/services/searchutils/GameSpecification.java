@@ -50,18 +50,18 @@ public class GameSpecification implements Specification<Game> {
             case CATEGORY:
                 String filterName = criteria.getKey().getFilterName();
 
-                Predicate fullGamesPredicate = criteriaBuilder.equal(
+                var fullGamesPredicate = criteriaBuilder.equal(
                         root.get(filterName), Category.valueOf(Category.FULL.toString()));
-                Predicate gameBundlePredicate = criteriaBuilder.equal(
+                var gameBundlePredicate = criteriaBuilder.equal(
                         root.get(filterName), Category.valueOf(Category.PREMIUM.toString()));
-                Predicate premiumGamePredicate = criteriaBuilder.equal(
+                var premiumGamePredicate = criteriaBuilder.equal(
                         root.get(filterName), Category.valueOf(Category.GAME_BUNDLE.toString()));
 
-                Predicate notFullGamesPredicate = criteriaBuilder.notEqual(
+                var notFullGamesPredicate = criteriaBuilder.notEqual(
                         root.get(filterName), Category.valueOf(Category.FULL.toString()));
-                Predicate notGameBundlePredicate = criteriaBuilder.notEqual(
+                var notGameBundlePredicate = criteriaBuilder.notEqual(
                         root.get(filterName), Category.valueOf(Category.PREMIUM.toString()));
-                Predicate notPremiumGamePredicate = criteriaBuilder.notEqual(
+                var notPremiumGamePredicate = criteriaBuilder.notEqual(
                         root.get(filterName), Category.valueOf(Category.GAME_BUNDLE.toString()));
 
                 if (criteria.getValue().equals("games")) {

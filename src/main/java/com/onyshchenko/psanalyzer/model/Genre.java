@@ -60,7 +60,7 @@ public enum Genre {
     }
 
     public static Genre ofRuUaName(String genreName) {
-        Genre result = ruUaGenreNameMap.get(genreName);
+        var result = ruUaGenreNameMap.get(genreName);
         if (result == null) {
             throw new IllegalArgumentException("Invalid genre name [" + genreName + "]");
         }

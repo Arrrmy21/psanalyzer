@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class GameMapperTest {
+class GameMapperTest {
 
     private static final long GAME_ID = 123;
     private static final String NEW_GAME_NAME = "new-game-Name-123";
@@ -21,7 +21,7 @@ public class GameMapperTest {
     private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
 
     @Test
-    public void testGameMapperWorksCorrect() {
+    void testGameMapperWorksCorrect() {
 
         Game defaultGame = prepareDefaultGame();
         Game entityWithNewValues = prepareNewEntity();

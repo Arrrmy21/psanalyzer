@@ -61,7 +61,7 @@ public class UserService {
 
         user.setUserId(user.getUserId());
 
-        Role roleUser = roleRepository.findByName("ROLE_USER");
+        var roleUser = roleRepository.findByName("ROLE_USER");
         Set<Role> userRoles = new HashSet<>();
         userRoles.add(roleUser);
         user.setRoles(userRoles);
@@ -74,7 +74,7 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(defaultPassword));
         }
 
-        User registeredUser = userRepository.save(user);
+        var registeredUser = userRepository.save(user);
 
         LOGGER.info("User [{}] successfully registered.", registeredUser.getUsername());
 
@@ -101,7 +101,7 @@ public class UserService {
 
     public User findByUsername(String username) {
 
-        User result = userRepository.findByUsername(username);
+        var result = userRepository.findByUsername(username);
 
         LOGGER.info("Getting user by name {}.", result.getUsername());
 
@@ -118,10 +118,10 @@ public class UserService {
 
     public Optional<User> updateUser(User userDetails) {
         Optional<User> userFromDb = findUserById(userDetails.getUserId());
-        if (!userFromDb.isPresent()) {
+        if (userFromDb.isEmpty()) {
             return Optional.empty();
         }
-        User userToBeUpdated = userFromDb.get();
+        var userToBeUpdated = userFromDb.get();
         userToBeUpdated.setFirstName(userDetails.getFirstName());
         userToBeUpdated.setLastName(userDetails.getLastName());
         userToBeUpdated.setUsername(userDetails.getUsername());
@@ -136,11 +136,11 @@ public class UserService {
     public ResponseEntity<Object> addGameToWishList(long userId, long gameId) {
 
         Optional<User> user = userRepository.findById(userId);
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             return new ResponseEntity<>(String.format(USER_NOT_EXIST, userId), HttpStatus.BAD_REQUEST);
         }
         Optional<Game> game = gameService.getGame(gameId);
-        if (!game.isPresent()) {
+        if (game.isEmpty()) {
             return new ResponseEntity<>(String.format(GAME_NOT_EXIST, gameId), HttpStatus.BAD_REQUEST);
         }
 
@@ -152,17 +152,17 @@ public class UserService {
     }
 
     public Optional<User> saveUser(User user) {
-        User savedUser = userRepository.save(user);
+        var savedUser = userRepository.save(user);
         return Optional.of(savedUser);
     }
 
     public ResponseEntity<Object> deleteGameFromWishList(long userId, long gameId) {
         Optional<User> user = userRepository.findById(userId);
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             return new ResponseEntity<>(String.format(USER_NOT_EXIST, userId), HttpStatus.BAD_REQUEST);
         }
         Optional<Game> game = gameService.getGame(gameId);
-        if (!game.isPresent()) {
+        if (game.isEmpty()) {
             return new ResponseEntity<>(String.format(GAME_NOT_EXIST, gameId), HttpStatus.BAD_REQUEST);
         }
 
@@ -175,7 +175,7 @@ public class UserService {
 
     public ResponseEntity<Object> clearWishListOfUser(long userId) {
         Optional<User> user = userRepository.findById(userId);
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             return new ResponseEntity<>(String.format(USER_NOT_EXIST, userId), HttpStatus.BAD_REQUEST);
         }
         user.get().getWishList().clear();
@@ -187,7 +187,7 @@ public class UserService {
 
     public ResponseEntity<Object> turnOnUsersNotifications(long userId) {
         Optional<User> user = userRepository.findById(userId);
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             return new ResponseEntity<>(String.format(USER_NOT_EXIST, userId), HttpStatus.BAD_REQUEST);
         }
 
@@ -200,7 +200,7 @@ public class UserService {
 
     public ResponseEntity<Object> turnOffUsersNotifications(long userId) {
         Optional<User> user = userRepository.findById(userId);
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             return new ResponseEntity<>(String.format(USER_NOT_EXIST, userId), HttpStatus.BAD_REQUEST);
         }
 

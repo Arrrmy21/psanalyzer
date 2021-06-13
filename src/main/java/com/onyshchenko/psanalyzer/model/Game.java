@@ -57,11 +57,11 @@ public class Game {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    private Set<Genre> genres;
+    private Set<Genre> genres = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    private Set<DeviceType> deviceTypes;
+    private Set<DeviceType> deviceTypes = new HashSet<>();
 
     @Column(name = "release_date")
     private LocalDate releaseDate;
@@ -94,10 +94,6 @@ public class Game {
     public void setName(String name) {
         this.name = name;
         this.searchName = name.toLowerCase();
-    }
-
-    public Set<DeviceType> getDeviceTypes() {
-        return deviceTypes == null ? deviceTypes = new HashSet<>() : deviceTypes;
     }
 
     public String getUpdatedDate() {

@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.xml.bind.ValidationException;
 import java.util.Optional;
-import java.util.List;
 
 @RestController
 public class GameController implements GameControllerIntf {
@@ -80,7 +79,7 @@ public class GameController implements GameControllerIntf {
 
         Optional<Game> gameFromDb = gameService.getGameByID(gameDetails.getId());
 
-        if (!gameFromDb.isPresent()) {
+        if (gameFromDb.isEmpty()) {
             return new ResponseEntity<>("Game not found id: [" + gameDetails.getId() + "].", HttpStatus.BAD_REQUEST);
         } else {
             gameService.saveGameRecordIntoDb(gameDetails);

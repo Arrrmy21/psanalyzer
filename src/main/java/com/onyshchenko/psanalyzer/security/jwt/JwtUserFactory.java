@@ -3,6 +3,8 @@ package com.onyshchenko.psanalyzer.security.jwt;
 import com.onyshchenko.psanalyzer.model.Role;
 import com.onyshchenko.psanalyzer.model.Status;
 import com.onyshchenko.psanalyzer.model.User;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -10,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class JwtUserFactory {
 
     public static JwtUser create(User user) {

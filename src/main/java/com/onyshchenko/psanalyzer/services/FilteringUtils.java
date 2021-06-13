@@ -7,7 +7,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.ValidationException;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
@@ -18,11 +17,11 @@ public class FilteringUtils {
 
     public static Specification<Game> getSpecificationFromFilter(String filter) throws ValidationException {
 
-        GameSpecificationBuilder builder = new GameSpecificationBuilder();
+        var builder = new GameSpecificationBuilder();
 
-        Pattern pattern = Pattern.compile("(\\w+)([=<>])(\\w+(-| |)\\w+)",
+        var pattern = Pattern.compile("(\\w+)([=<>])(\\w+(-| |)\\w+)",
                 Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS);
-        Matcher matcher = pattern.matcher(filter + ",");
+        var matcher = pattern.matcher(filter + ",");
         while (matcher.find()) {
             builder.with(validateKeyForSearch(matcher.group(1)), matcher.group(2), matcher.group(3));
         }

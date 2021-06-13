@@ -1,7 +1,6 @@
 package com.onyshchenko.psanalyzer.controllers;
 
 import com.onyshchenko.psanalyzer.dto.AuthenticationRequestDto;
-import com.onyshchenko.psanalyzer.model.User;
 import com.onyshchenko.psanalyzer.security.jwt.JwtTokenProvider;
 import com.onyshchenko.psanalyzer.services.UserService;
 import org.slf4j.Logger;
@@ -50,7 +49,7 @@ public class AuthenticationRestController {
             }
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username,
                     password));
-            User user = userService.findByUsername(username);
+            var user = userService.findByUsername(username);
 
             if (user == null) {
                 return new ResponseEntity<>("User with username [" + username + "] not found.", HttpStatus.BAD_REQUEST);

@@ -53,7 +53,7 @@ public class ScheduledTasksService {
     @Scheduled(cron = "0 0 5 * * *", zone = "GMT+3:00")
     public void collectDataAboutGamesByList() {
 
-        LocalDateTime startingTime = LocalDateTime.now();
+        var startingTime = LocalDateTime.now();
         LOGGER.info("Starting scheduled task for collecting games data.");
 
         listOfVisitedUrls = new ArrayList<>();
@@ -66,7 +66,7 @@ public class ScheduledTasksService {
         } catch (ForbiddenRequestException exception) {
             LOGGER.error("Forbidden exception captured.", exception);
         }
-        LocalDateTime listDataEndTime = LocalDateTime.now();
+        var listDataEndTime = LocalDateTime.now();
         LOGGER.info("Collecting minimal data about games from list finished in [{}] minutes",
                 Duration.between(startingTime, listDataEndTime).toMinutes());
 
@@ -76,7 +76,7 @@ public class ScheduledTasksService {
         } catch (ForbiddenRequestException exception) {
             LOGGER.error("Forbidden exception captured.", exception);
         }
-        LocalDateTime finishingTime = LocalDateTime.now();
+        var finishingTime = LocalDateTime.now();
         LOGGER.info("Collecting data about games finished in [{}] minutes",
                 Duration.between(startingTime, finishingTime).toMinutes());
     }
@@ -96,14 +96,14 @@ public class ScheduledTasksService {
 
         for (String url : urls) {
             String address = BASE_URL + "product/" + url;
-            Document document = getDataFromUrlWithJsoup(address);
+            var document = getDataFromUrlWithJsoup(address);
             if (document == null || !document.getElementsByClass("error-content psw-grid-x").isEmpty()) {
                 LOGGER.warn("Document doesn't contain game data.");
                 continue;
             }
 
             try {
-                Game gameBasedOnPriceOnly = documentParseService.prepareGameBasedOnSingleGameDocument(document, url);
+                var gameBasedOnPriceOnly = documentParseService.prepareGameBasedOnSingleGameDocument(document, url);
                 gameService.compareCollectedSingleGameToExisted(gameBasedOnPriceOnly);
             } catch (Exception ex) {
                 LOGGER.error("Exception while processing obtained document");
@@ -115,17 +115,17 @@ public class ScheduledTasksService {
 
     private void collectDataFromSiteByCategory(UrlCategory urlCategory) throws ForbiddenRequestException {
 
-        int page = 1;
-        boolean isLastPage = false;
+        var page = 1;
+        var isLastPage = false;
 
         do {
             LOGGER.info("Getting all data form page: [{}].", page);
             String url = BASE_URL + "category/" + urlCategory.getUrl() + "/" + page;
 
-            Document document = getDataFromUrlWithJsoup(url);
+            var document = getDataFromUrlWithJsoup(url);
 
             Optional<DocumentContext> documentContext = prepareDocumentContextFromDocument(document);
-            if (!documentContext.isPresent()) {
+            if (documentContext.isEmpty()) {
                 LOGGER.warn("Received null value instead of DocumentContext from url: [{}]", url);
                 continue;
             }
@@ -146,7 +146,7 @@ public class ScheduledTasksService {
 
 
     private String getDefaultSizeFromPage(int page) {
-        int defaultPageSize = 24;
+        var defaultPageSize = 24;
         int offset = (page - 1) * defaultPageSize;
 
         return offset + ":" + defaultPageSize;
@@ -162,11 +162,11 @@ public class ScheduledTasksService {
                 .filter(e -> e.toString().contains("__NEXT_DATA__"))
                 .findFirst()
                 .map(e -> e.childNodes().get(0));
-        if (!node.isPresent()) {
+        if (node.isEmpty()) {
             LOGGER.error("Collected 0 elements from document.");
             return Optional.empty();
         }
-        String jsonString = node.get().toString();
+        var jsonString = node.get().toString();
         DocumentContext context = JsonPath.parse(jsonString);
 
         return Optional.of(context);
@@ -222,11 +222,11 @@ public class ScheduledTasksService {
         LOGGER.info("Collected [{}] games for getting detailed info.", urls.size());
 
         for (String url : urls) {
-            Document document = getDataFromUrlWithJsoup(BASE_URL + "product/" + url);
+            var document = getDataFromUrlWithJsoup(BASE_URL + "product/" + url);
             if (document == null) {
                 continue;
             }
-            Game gameForUpdating = documentParseService.getDetailedGameInfoFromDocument(document);
+            var gameForUpdating = documentParseService.getDetailedGameInfoFromDocument(document);
             long gameId = gameService.getGameIdByUrl(url);
             gameService.updateGamePatch(gameForUpdating, gameId);
         }

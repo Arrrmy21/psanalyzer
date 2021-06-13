@@ -26,7 +26,7 @@ public class GameSpecificationBuilder {
         }
 
         Specification<Game> result = new GameSpecification(params.get(0));
-        for (int i = 1; i < params.size(); i++) {
+        for (var i = 1; i < params.size(); i++) {
             result = Objects.requireNonNull(Specification.where(result)).and(new GameSpecification(params.get(i)));
         }
         return result;

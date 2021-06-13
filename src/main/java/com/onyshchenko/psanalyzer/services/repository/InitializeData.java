@@ -23,8 +23,7 @@ public class InitializeData {
     public void loadData() {
 
         LOGGER.info("Loading predefined data to database.");
-        ResourceDatabasePopulator resourceDatabasePopulator =
-                new ResourceDatabasePopulator(new ClassPathResource("data.sql"));
+        var resourceDatabasePopulator = new ResourceDatabasePopulator(new ClassPathResource("data.sql"));
         resourceDatabasePopulator.execute(dataSource);
         LOGGER.info("Loading predefined data to database FINISHED.");
     }

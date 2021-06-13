@@ -51,10 +51,10 @@ public class DocumentParseService {
 
     public Game getDetailedGameInfoFromDocument(Document document) {
         LOGGER.info("Parsing detailed game info from document.");
-        Game gameForUpdating = new Game();
-        boolean exceptionCaptured = false;
+        var gameForUpdating = new Game();
+        var exceptionCaptured = false;
         try {
-            Element element = document.getElementsByClass("psw-grid-x psw-fill-x psw-l-space-y-m psw-grid-margin-x psw-m-y-0").get(0);
+            var element = document.getElementsByClass("psw-grid-x psw-fill-x psw-l-space-y-m psw-grid-margin-x psw-m-y-0").get(0);
 
             String publisherName = extractPublisherFromGameElement(element);
 
@@ -137,7 +137,7 @@ public class DocumentParseService {
             String name = JsonPath.parse(gameInfo).read("name");
             String gameClassification = JsonPath.parse(gameInfo).read("localizedStoreDisplayClassification");
 
-            Game game = new Game();
+            var game = new Game();
             game.setUrl(url);
             game.setName(name);
 
@@ -183,14 +183,14 @@ public class DocumentParseService {
                 LOGGER.info("Captured game in EA_ACCESS subscription.");
                 game.setIsEaAccess(true);
             } else if (subscriptionCategory.equalsIgnoreCase("PS_PLUS") && game.getPrice() != null) {
-                String psPlusUpsellText = priceContext.read("upsellText").toString();
+                var psPlusUpsellText = priceContext.read("upsellText").toString();
                 if (psPlusUpsellText.contains("Сэкономьте еще ")) {
                     LOGGER.info("Captured game with additional discount by PS Plus.");
                     String percentageValue = psPlusUpsellText.replace("Сэкономьте еще ", "")
                             .replace("\u00A0%", "");
-                    int discountPercent = Integer.parseInt(percentageValue);
+                    var discountPercent = Integer.parseInt(percentageValue);
 
-                    Price currentPrice = game.getPrice();
+                    var currentPrice = game.getPrice();
 
                     game.getPrice().setCurrentPsPlusPrice(currentPrice.getCurrentPrice() * (100 - discountPercent) / 100);
                 }
@@ -211,8 +211,8 @@ public class DocumentParseService {
             LOGGER.info("Game is not available for purchase.");
             return new Price().inNotAvailable();
         } else {
-            int basePriceInt = convertStringPriceValueToInt(basePrice);
-            int discountedPriceInt = convertStringPriceValueToInt(discountedPrice);
+            var basePriceInt = convertStringPriceValueToInt(basePrice);
+            var discountedPriceInt = convertStringPriceValueToInt(discountedPrice);
 
             return new Price(discountedPriceInt, basePriceInt, Currency.UAH);
         }
@@ -238,8 +238,8 @@ public class DocumentParseService {
     private Set<Genre> extractGenresFromGameElement(Element element) {
         Set<Genre> genres = new HashSet<>();
         try {
-            Element genreElements = element.getElementsByAttributeValueContaining(DATA_QA, "genre-value").get(0);
-            String stringGenreList = genreElements.childNode(0).childNode(0).toString();
+            var genreElements = element.getElementsByAttributeValueContaining(DATA_QA, "genre-value").get(0);
+            var stringGenreList = genreElements.childNode(0).childNode(0).toString();
             String[] stringGenres = stringGenreList.split(",");
 
             for (String genre : stringGenres) {
@@ -272,7 +272,7 @@ public class DocumentParseService {
     private LocalDate extractReleaseDateFromGameElement(Element element) {
         LocalDate releaseDate = null;
         try {
-            String stringReleaseDate = element.getElementsByAttributeValueContaining(DATA_QA, "releaseDate-value")
+            var stringReleaseDate = element.getElementsByAttributeValueContaining(DATA_QA, "releaseDate-value")
                     .get(0).childNode(0).toString().replace("\n", "");
             if (!stringReleaseDate.isEmpty()) {
                 releaseDate = LocalDate.parse(stringReleaseDate, DATE_TIME_FORMATTER);
@@ -296,8 +296,8 @@ public class DocumentParseService {
 
         DocumentContext context = JsonPath.parse(mapFromPriceContext);
 
-        Price basePrice = getPriceBasedOnContext(context);
-        Game game = new Game();
+        var basePrice = getPriceBasedOnContext(context);
+        var game = new Game();
         game.setPrice(basePrice);
         game.setUrl(url);
 

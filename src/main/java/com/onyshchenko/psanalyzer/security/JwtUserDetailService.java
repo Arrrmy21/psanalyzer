@@ -1,7 +1,5 @@
 package com.onyshchenko.psanalyzer.security;
 
-import com.onyshchenko.psanalyzer.model.User;
-import com.onyshchenko.psanalyzer.security.jwt.JwtUser;
 import com.onyshchenko.psanalyzer.security.jwt.JwtUserFactory;
 import com.onyshchenko.psanalyzer.services.UserService;
 import org.slf4j.Logger;
@@ -23,13 +21,13 @@ public class JwtUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) {
 
-        User user = userService.findByUsername(username);
+        var user = userService.findByUsername(username);
 
         if (user == null) {
             throw new UsernameNotFoundException("User with username [" + username + "] not found.");
         }
 
-        JwtUser jwtUser = JwtUserFactory.create(user);
+        var jwtUser = JwtUserFactory.create(user);
 
         LOGGER.info("User with username [{}] successfully loaded", user.getUsername());
         return jwtUser;
