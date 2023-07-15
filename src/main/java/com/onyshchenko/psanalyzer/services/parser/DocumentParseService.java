@@ -219,8 +219,7 @@ public class DocumentParseService {
     }
 
     private int convertStringPriceValueToInt(String priceValue) {
-        String fluentBasePrice = priceValue.substring(0, priceValue.length() - 4)
-                .replace(" ", "");
+        String fluentBasePrice = priceValue.replaceAll("[^0-9,]+", "").split(",")[0];
 
         return (int) Double.parseDouble(fluentBasePrice);
     }
@@ -287,7 +286,7 @@ public class DocumentParseService {
     public Game prepareGameBasedOnSingleGameDocument(Document document, String url) {
 
         List<?> listOfPrices = JsonPath.parse(document.getElementsByClass("pdp-cta")
-                .get(0).childNodes().get(0).childNode(0).toString())
+                        .get(0).childNodes().get(0).childNode(0).toString())
                 .read("$.cache.Product:" + url + ".webctas");
 
         String nameOfBasePriceElement = (String) ((Map<?, ?>) listOfPrices.get(0)).get("__ref");
@@ -322,7 +321,7 @@ public class DocumentParseService {
 
     private Map<?, ?> getPriceOfDistinctElementFromDocument(Document document, String elementName) {
         return JsonPath.parse(document.getElementsByClass("pdp-cta")
-                .get(0).childNodes().get(0).childNode(0).toString())
+                        .get(0).childNodes().get(0).childNode(0).toString())
                 .read("$.cache." + elementName + ".price");
     }
 }
