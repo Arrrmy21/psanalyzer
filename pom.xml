@@ -12,7 +12,7 @@
     <artifactId>psanalyzer</artifactId>
     <version>1.2</version>
     <name>psanalyzer</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Service for collecting prices for Playstation Store</description>
 
     <properties>
         <java.version>11</java.version>
