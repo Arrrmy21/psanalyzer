@@ -13,6 +13,7 @@ public enum RequestFilters {
     PSPLUS("psplus"),
     EAACCESS("isEaAccess"),
     EXCLUSIVE("isExclusive"),
+    TEST_CODE("isTestCode"),
     USERID("userId");
 
     RequestFilters(String filter) {
