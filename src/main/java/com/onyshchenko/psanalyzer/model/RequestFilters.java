@@ -13,7 +13,10 @@ public enum RequestFilters {
     PSPLUS("psplus"),
     EAACCESS("isEaAccess"),
     EXCLUSIVE("isExclusive"),
-    USERID("userId");
+    TEST1("isExclusive"),
+    Test2("isExclusive"),
+    USERID("userId"),
+    PAGE("page");
 
     RequestFilters(String filter) {
         this.filterName = filter;
