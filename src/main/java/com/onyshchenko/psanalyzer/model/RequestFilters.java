@@ -13,8 +13,6 @@ public enum RequestFilters {
     PSPLUS("psplus"),
     EAACCESS("isEaAccess"),
     EXCLUSIVE("isExclusive"),
-    //TODO: Revert this changes
-    GERRIT_FILTER("gerrit"),
     USERID("userId");
 
     RequestFilters(String filter) {

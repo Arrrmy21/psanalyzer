@@ -33,8 +33,7 @@ public enum Genre {
     BRAIN_TRAINING("BRAIN_TRAINING", null, "Тренировка мозга"),
     FITNESS("FITNESS", null, "Фитнес"),
     ADULT("ADULT", null, "Для взрослых"),
-    QUIZ("QUIZ", null, "Викторины"),
-    GERRIT("GERRIT", null, "Gerrit");
+    QUIZ("QUIZ", null, "Викторины");
 
     private static Map<String, Genre> ruUaGenreNameMap = new HashMap<>(values().length, 1);
 
