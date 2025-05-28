@@ -26,11 +26,21 @@ public class Publisher {
     @Column(name = "name")
     String name;
 
+    @Column(name = "surname")
+    String surname;
+
     @Column(name = "search_name")
     String searchName;
 
     public Publisher(String name) {
         this.name = name;
         this.searchName = name.toLowerCase();
+    }
+
+    public Publisher(Long id, String name, String surname, String searchName) {
+        this.id = id;
+        this.name = name;
+        this.surname = surname;
+        this.searchName = searchName;
     }
 }
