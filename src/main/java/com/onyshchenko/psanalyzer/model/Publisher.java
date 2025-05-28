@@ -31,6 +31,13 @@ public class Publisher {
 
     @Column(name = "search_name")
     String searchName;
+    String surname;
+
+    @Column(name = "search_Path")
+    String searchPath;
+
+    @Column(name = "search_Id")
+    String searchId;
 
     public Publisher(String name) {
         this.name = name;
